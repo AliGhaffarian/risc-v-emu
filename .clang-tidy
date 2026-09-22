@@ -1,0 +1,12 @@
+# .clang-tidy in project root
+Checks: >
+  -*,
+  bugprone-*,
+  cert-*,
+  clang-analyzer-*,
+  performance-*,
+  readability-*,
+  -llvmlibc-*
+
+# Only analyze headers in src/ and tests/ (skips _deps/unity_download)
+HeaderFilterRegex: '(src|tests)/.*'

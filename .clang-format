@@ -1,0 +1,51 @@
+BasedOnStyle: LLVM
+
+# Do not reflow or re-wrap comment lines to fit ColumnLimit
+ReflowComments: false
+
+AlignConsecutiveAssignments:
+  Enabled: true
+  AcrossEmptyLines: false
+  AcrossComments: false
+  AlignCompound: false
+  PadOperators: true
+  EnumAssignments: true
+AllowShortEnumsOnASingleLine: false
+
+# Do not align trailing comments across consecutive lines
+AlignTrailingComments:
+  Kind: Leave
+
+# Prevent packing multiple parameters/arguments on one line
+BinPackParameters: false
+BinPackArguments: false
+
+# Break after open paren if a break is needed
+AlignAfterOpenBracket: AlwaysBreak
+
+SpaceBeforeParens: Never
+
+# Affect indentation inside braced lists
+BracedInitializerIndentWidth: 4
+
+PackConstructorInitializers: Never
+
+IndentWidth: 4
+TabWidth: 4
+UseTab: Never
+
+PointerAlignment: Right
+DerivePointerAlignment: true
+
+ColumnLimit: 80
+
+SpacesBeforeTrailingComments: 1
+
+AlignConsecutiveMacros:
+  Enabled: true
+  AcrossEmptyLines: false
+  AcrossComments: true
+
+BreakBeforeBraces: Custom
+BraceWrapping:
+  AfterFunction: true
