@@ -108,11 +108,6 @@ extern void (*_Nonnull execution_handlers[OPCODE_MAX][FUNC3_MAX][FUNC7_MAX])(
 
 int init_rv64_cpu(struct rv64_cpu *_Nonnull cpu);
 
-uint64_t bitmask_from_bit_size(uint64_t bit_size);
-uint64_t
-extract_bits_from_uint64(uint64_t num, uint64_t start, uint64_t bitmask);
-uint64_t repeat_bit_in_num(uint64_t num, uint8_t start, uint8_t bit);
-
 struct decoded_rv64_base_ins_r {
     uint7b_t opcode;
     uint5b_t rd;

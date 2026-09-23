@@ -34,38 +34,6 @@ void __attribute__((constructor())) init_ins_decode_handlers(void)
     ins_decode_handlers[OP_32]     = decode_ins_r;
 }
 
-uint64_t bitmask_from_bit_size(uint64_t bit_size)
-{
-    uint64_t ret = 0;
-
-    for(int i = 0; i < bit_size; i++) {
-        ret |= (1 << i);
-    }
-
-    return ret;
-}
-
-uint64_t
-extract_bits_from_uint64(uint64_t num, uint64_t start, uint64_t bitmask)
-{
-    uint64_t ret = 0;
-
-    ret = num >> start;
-
-    ret &= bitmask;
-
-    return ret;
-}
-
-uint64_t repeat_bit_in_num(uint64_t num, uint8_t start, uint8_t bit)
-{
-    for(int i = start; i < XLEN; i++) {
-        num |= ((uint64_t)bit << i);
-    }
-
-    return num;
-}
-
 uint64_t decode_imm_i(rv64_instruction_t ins)
 {
     uint64_t ret     = 0;
