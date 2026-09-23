@@ -2,6 +2,11 @@
 
 #include <stdint.h>
 
+/**
+ * This file holds the core cpu and base RV64I, plus some bindings
+ *   intended to simplify the compliance with the doc.
+ */
+
 #define RV64_INS_LEN 32
 #define XLEN         64
 
