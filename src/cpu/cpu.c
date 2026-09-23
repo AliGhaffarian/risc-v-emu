@@ -621,3 +621,31 @@ void execute_auipc(
 
     cpu->regs[decoded_ins->rd] = decoded_ins->imm + cpu->regs[REG_INX_PC];
 }
+
+void execute_add(
+    struct rv64_cpu *_Nonnull cpu, void *_Nonnull *_Nonnull vdecoded_ins_r)
+{
+    assert(cpu);
+    assert(vdecoded_ins_r);
+    assert(*vdecoded_ins_r);
+
+    _cleanup_free_ struct decoded_rv64_base_ins_r *decoded_ins =
+        MOVE(vdecoded_ins_r);
+
+    cpu->regs[decoded_ins->rd] =
+        cpu->regs[decoded_ins->rs1] + cpu->regs[decoded_ins->rs2];
+}
+
+void execute_sub(
+    struct rv64_cpu *_Nonnull cpu, void *_Nonnull *_Nonnull vdecoded_ins_r)
+{
+    assert(cpu);
+    assert(vdecoded_ins_r);
+    assert(*vdecoded_ins_r);
+
+    _cleanup_free_ struct decoded_rv64_base_ins_r *decoded_ins =
+        MOVE(vdecoded_ins_r);
+
+    cpu->regs[decoded_ins->rd] =
+        cpu->regs[decoded_ins->rs1] - cpu->regs[decoded_ins->rs2];
+}

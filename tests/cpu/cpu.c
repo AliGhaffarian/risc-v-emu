@@ -485,6 +485,48 @@ void test_execute_srlaiw(void)
     }
 }
 
+void test_execute_add(void)
+{
+    struct decoded_rv64_base_ins_r *ins = calloc(1, sizeof(*ins));
+    struct rv64_cpu cpu;
+
+    ins->rd  = 5;
+    ins->rs1 = 7;
+    ins->rs2 = 8;
+
+    init_rv64_cpu(&cpu);
+
+    cpu.regs[7] = 5;
+    cpu.regs[8] = 50;
+    cpu.regs[5] = 2;
+
+    execute_add(&cpu, (void **)&ins);
+
+    TEST_ASSERT_EQUAL_INT64(55, cpu.regs[5]);
+    TEST_ASSERT_NULL(ins);
+}
+
+void test_execute_sub(void)
+{
+    struct decoded_rv64_base_ins_r *ins = calloc(1, sizeof(*ins));
+    struct rv64_cpu cpu;
+
+    ins->rd  = 5;
+    ins->rs1 = 7;
+    ins->rs2 = 8;
+
+    init_rv64_cpu(&cpu);
+
+    cpu.regs[7] = 50;
+    cpu.regs[8] = 5;
+    cpu.regs[5] = 2;
+
+    execute_sub(&cpu, (void **)&ins);
+
+    TEST_ASSERT_EQUAL_INT64(45, cpu.regs[5]);
+    TEST_ASSERT_NULL(ins);
+}
+
 int main(void)
 {
     UNITY_BEGIN();
@@ -512,6 +554,8 @@ int main(void)
     RUN_TEST(test_execute_srlaiw);
     RUN_TEST(test_execute_lui);
     RUN_TEST(test_execute_auipc);
+    RUN_TEST(test_execute_add);
+    RUN_TEST(test_execute_sub);
     return UNITY_END();
 }
 
