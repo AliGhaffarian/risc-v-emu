@@ -18,9 +18,12 @@
 #define IMM_U_SIZE_BITS                                                        \
     IMM_J_SIZE_BITS /** U is a variant of J risc-v unpriviledge 2.3 */
 
-#define SHIFT_SHAMT_BIT_SIZE            6
-#define SHIFT_RIGHT_TYPE_BIT_POS_IN_IMM 10
-#define SHIFTW_SHAMT_BIT_SIZE           5
+#define SHIFT_SHAMT_BIT_SIZE             6
+#define SHIFT_RIGHT_TYPE_BIT_POS_IN_IMM  10
+#define SHIFTW_SHAMT_BIT_SIZE            5
+#define SHIFTW_RIGHT_TYPE_BIT_POS_IN_IMM SHIFT_RIGHT_TYPE_BIT_POS_IN_IMM
+
+#define W_BITMASK 0xff'ff'ff'ff
 
 typedef uint32_t rv64_instruction_t;
 
@@ -197,6 +200,9 @@ uint64_t decode_imm_j(rv64_instruction_t ins);
 void execute_addi(
     struct rv64_cpu *_Nonnull cpu, void *_Nonnull *_Nonnull vdecoded_ins_i);
 
+void execute_addiw(
+    struct rv64_cpu *_Nonnull cpu, void *_Nonnull *_Nonnull vdecoded_ins_i);
+
 void execute_slti(
     struct rv64_cpu *_Nonnull cpu, void *_Nonnull *_Nonnull vdecoded_ins_i);
 
@@ -214,6 +220,8 @@ void execute_xori(
 
 void execute_slli(
     struct rv64_cpu *_Nonnull cpu, void *_Nonnull *_Nonnull vdecoded_ins_i);
+void execute_slliw(
+    struct rv64_cpu *_Nonnull cpu, void *_Nonnull *_Nonnull vdecoded_ins_i);
 
 void execute_srlai(
     struct rv64_cpu *_Nonnull cpu, void *_Nonnull *_Nonnull vdecoded_ins_i);
@@ -223,6 +231,17 @@ void execute_srli(
     struct decoded_rv64_base_ins_i *_Nonnull decoded_ins);
 
 void execute_srai(
+    struct rv64_cpu *_Nonnull cpu,
+    struct decoded_rv64_base_ins_i *_Nonnull decoded_ins);
+
+void execute_srlaiw(
+    struct rv64_cpu *_Nonnull cpu, void *_Nonnull *_Nonnull vdecoded_ins_i);
+
+void execute_srliw(
+    struct rv64_cpu *_Nonnull cpu,
+    struct decoded_rv64_base_ins_i *_Nonnull decoded_ins);
+
+void execute_sraiw(
     struct rv64_cpu *_Nonnull cpu,
     struct decoded_rv64_base_ins_i *_Nonnull decoded_ins);
 

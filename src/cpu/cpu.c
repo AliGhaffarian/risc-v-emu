@@ -386,6 +386,20 @@ void execute_addi(
     cpu->regs[decoded_ins->rd] = cpu->regs[decoded_ins->rs1] + decoded_ins->imm;
 }
 
+void execute_addiw(
+    struct rv64_cpu *_Nonnull cpu, void *_Nonnull *_Nonnull vdecoded_ins_i)
+{
+    assert(cpu);
+    assert(vdecoded_ins_i);
+    assert(*vdecoded_ins_i);
+
+    _cleanup_free_ struct decoded_rv64_base_ins_i *decoded_ins =
+        MOVE(vdecoded_ins_i);
+
+    cpu->regs[decoded_ins->rd] = cpu->regs[decoded_ins->rs1] + decoded_ins->imm;
+    cpu->regs[decoded_ins->rd] &= W_BITMASK;
+}
+
 void execute_slti(
     struct rv64_cpu *_Nonnull cpu, void *_Nonnull *_Nonnull vdecoded_ins_i)
 {
@@ -469,6 +483,22 @@ void execute_slli(
 
     cpu->regs[decoded_ins->rd] = cpu->regs[decoded_ins->rs1] << shamt;
 }
+void execute_slliw(
+    struct rv64_cpu *_Nonnull cpu, void *_Nonnull *_Nonnull vdecoded_ins_i)
+{
+    assert(cpu);
+    assert(vdecoded_ins_i);
+    assert(*vdecoded_ins_i);
+
+    _cleanup_free_ struct decoded_rv64_base_ins_i *decoded_ins =
+        MOVE(vdecoded_ins_i);
+    uint8_t shamt =
+        decoded_ins->imm & bitmask_from_bit_size(SHIFTW_SHAMT_BIT_SIZE);
+    uint32_t rs1_lower = ((uint32_t)cpu->regs[decoded_ins->rs1]);
+    uint8_t sign_bit   = GET_SIGN_BIT(rs1_lower);
+
+    cpu->regs[decoded_ins->rd] = sign_extend_u32_to_u64(rs1_lower << shamt);
+}
 
 void execute_srlai(
     struct rv64_cpu *_Nonnull cpu, void *_Nonnull *_Nonnull vdecoded_ins_i)
@@ -515,6 +545,55 @@ void execute_srai(
         cpu->regs[decoded_ins->rd] = cpu->regs[decoded_ins->rd] >> 1;
         cpu->regs[decoded_ins->rd] |= sign_bit;
     }
+}
+
+void execute_srlaiw(
+    struct rv64_cpu *_Nonnull cpu, void *_Nonnull *_Nonnull vdecoded_ins_i)
+{
+    assert(cpu);
+    assert(vdecoded_ins_i);
+    assert(*vdecoded_ins_i);
+
+    _cleanup_free_ struct decoded_rv64_base_ins_i *decoded_ins =
+        MOVE(vdecoded_ins_i);
+
+    uint64_t shift_type_bit_mask = 1 << SHIFTW_RIGHT_TYPE_BIT_POS_IN_IMM;
+    uint8_t do_arithmatic_shift =
+        decoded_ins->imm & shift_type_bit_mask ? 1 : 0;
+
+    if(do_arithmatic_shift) {
+        execute_sraiw(cpu, decoded_ins);
+    } else {
+        execute_srliw(cpu, decoded_ins);
+    }
+}
+
+void execute_srliw(
+    struct rv64_cpu *_Nonnull cpu,
+    struct decoded_rv64_base_ins_i *_Nonnull decoded_ins)
+{
+    uint8_t shamt =
+        decoded_ins->imm & bitmask_from_bit_size(SHIFTW_SHAMT_BIT_SIZE);
+    uint32_t lower_rs1         = cpu->regs[decoded_ins->rs1];
+    cpu->regs[decoded_ins->rd] = sign_extend_u32_to_u64(lower_rs1 >> shamt);
+}
+
+void execute_sraiw(
+    struct rv64_cpu *_Nonnull cpu,
+    struct decoded_rv64_base_ins_i *_Nonnull decoded_ins)
+{
+    uint8_t shamt =
+        decoded_ins->imm & bitmask_from_bit_size(SHIFTW_SHAMT_BIT_SIZE);
+
+    uint32_t lower_rs1 = cpu->regs[decoded_ins->rs1];
+    uint32_t sign_bit  = GET_SIGN_BIT(lower_rs1) << ((XLEN / 2) - 1);
+
+    for(int i = 0; i < shamt; i++) {
+        lower_rs1 = lower_rs1 >> 1;
+        lower_rs1 |= sign_bit;
+    }
+
+    cpu->regs[decoded_ins->rd] = sign_extend_u32_to_u64(lower_rs1);
 }
 
 void execute_lui(

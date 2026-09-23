@@ -366,6 +366,101 @@ void test_execute_auipc(void)
     TEST_ASSERT_NULL(ins);
 }
 
+void test_execute_addiw(void)
+{
+    struct decoded_rv64_base_ins_i *ins = calloc(1, sizeof(*ins));
+    struct rv64_cpu cpu;
+
+    ins->rd  = 5;
+    ins->rs1 = 7;
+    ins->imm = -2;
+
+    init_rv64_cpu(&cpu);
+
+    cpu.regs[7] = 1;
+    cpu.regs[5] = 2;
+
+    execute_addiw(&cpu, (void **)&ins);
+
+    TEST_ASSERT_EQUAL_INT64(0xff'ff'ff'ff, cpu.regs[5]);
+    TEST_ASSERT_NULL(ins);
+}
+
+void test_execute_slliw(void)
+{
+    struct decoded_rv64_base_ins_i *ins = calloc(1, sizeof(*ins));
+    struct rv64_cpu cpu;
+
+    ins->rd  = 5;
+    ins->rs1 = 7;
+
+    uint64_t shamt      = 16;
+    uint64_t shift_type = 0 << (5 + 5);
+
+    ins->imm = shamt + shift_type;
+
+    init_rv64_cpu(&cpu);
+
+    cpu.regs[7] = 0x80'aa'bb'cc'8d'ee'ff'11;
+    cpu.regs[5] = 2;
+
+    execute_slliw(&cpu, (void **)&ins);
+
+    TEST_ASSERT_EQUAL_HEX64(0xff'ff'ff'ff'ff'11'00'00, cpu.regs[5]);
+    TEST_ASSERT_NULL(ins);
+}
+
+void test_execute_srlaiw(void)
+{
+    // arithmetic
+    {
+        struct decoded_rv64_base_ins_i *ins = calloc(1, sizeof(*ins));
+        struct rv64_cpu cpu;
+
+        ins->rd  = 5;
+        ins->rs1 = 7;
+
+        uint64_t shamt      = 16;
+        uint64_t shift_type = 1 << (5 + 5);
+
+        ins->imm = shamt + shift_type;
+
+        init_rv64_cpu(&cpu);
+
+        cpu.regs[7] = 0x80'aa'bb'cc'8d'ee'ff'11;
+        cpu.regs[5] = 2;
+
+        execute_srlaiw(&cpu, (void **)&ins);
+
+        TEST_ASSERT_EQUAL_HEX64(0xff'ff'ff'ff'ff'ff'8d'ee, cpu.regs[5]);
+        TEST_ASSERT_NULL(ins);
+    }
+
+    // logical
+    {
+        struct decoded_rv64_base_ins_i *ins = calloc(1, sizeof(*ins));
+        struct rv64_cpu cpu;
+
+        ins->rd  = 5;
+        ins->rs1 = 7;
+
+        uint64_t shamt      = 16;
+        uint64_t shift_type = 0 << (5 + 5);
+
+        ins->imm = shamt + shift_type;
+
+        init_rv64_cpu(&cpu);
+
+        cpu.regs[7] = 0x80'aa'bb'cc'8d'ee'ff'11;
+        cpu.regs[5] = 2;
+
+        execute_srlaiw(&cpu, (void **)&ins);
+
+        TEST_ASSERT_EQUAL_HEX64(0x00'00'00'00'00'00'8d'ee, cpu.regs[5]);
+        TEST_ASSERT_NULL(ins);
+    }
+}
+
 int main(void)
 {
     UNITY_BEGIN();
@@ -381,12 +476,15 @@ int main(void)
     RUN_TEST(test_decode_func7);
 
     RUN_TEST(test_execute_addi);
+    RUN_TEST(test_execute_addiw);
     RUN_TEST(test_execute_slti);
     RUN_TEST(test_execute_sltiu);
     RUN_TEST(test_execute_andi);
     RUN_TEST(test_execute_ori);
     RUN_TEST(test_execute_xori);
+    RUN_TEST(test_execute_slliw);
     RUN_TEST(test_execute_srlai);
+    RUN_TEST(test_execute_srlaiw);
     RUN_TEST(test_execute_lui);
     RUN_TEST(test_execute_auipc);
     return UNITY_END();
