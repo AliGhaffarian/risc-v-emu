@@ -382,7 +382,7 @@ void test_execute_addiw(void)
 
     execute_addiw(&cpu, (void **)&ins);
 
-    TEST_ASSERT_EQUAL_INT64(0xff'ff'ff'ff, cpu.regs[5]);
+    TEST_ASSERT_EQUAL_INT64(0xff'ff'ff'ff'ff'ff'ff'ff, cpu.regs[5]);
     TEST_ASSERT_NULL(ins);
 }
 

@@ -396,8 +396,10 @@ void execute_addiw(
     _cleanup_free_ struct decoded_rv64_base_ins_i *decoded_ins =
         MOVE(vdecoded_ins_i);
 
-    cpu->regs[decoded_ins->rd] = cpu->regs[decoded_ins->rs1] + decoded_ins->imm;
-    cpu->regs[decoded_ins->rd] &= W_BITMASK;
+    uint32_t rs1_lower = cpu->regs[decoded_ins->rs1];
+    rs1_lower += (uint32_t)decoded_ins->imm;
+
+    cpu->regs[decoded_ins->rd] = sign_extend_u32_to_u64(rs1_lower);
 }
 
 void execute_slti(
