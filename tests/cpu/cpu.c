@@ -527,6 +527,108 @@ void test_execute_sub(void)
     TEST_ASSERT_NULL(ins);
 }
 
+void test_execute_slt(void)
+{
+    struct decoded_rv64_base_ins_r *ins = calloc(1, sizeof(*ins));
+    struct rv64_cpu cpu;
+
+    ins->rd  = 5;
+    ins->rs1 = 7;
+    ins->rs2 = 3;
+
+    init_rv64_cpu(&cpu);
+
+    cpu.regs[7] = 5;
+    cpu.regs[3] = -1;
+    cpu.regs[5] = 2;
+
+    execute_slt(&cpu, (void **)&ins);
+
+    TEST_ASSERT_EQUAL_INT64(0, cpu.regs[5]);
+    TEST_ASSERT_NULL(ins);
+}
+void test_execute_sltu(void)
+{
+    struct decoded_rv64_base_ins_r *ins = calloc(1, sizeof(*ins));
+    struct rv64_cpu cpu;
+
+    ins->rd  = 5;
+    ins->rs1 = 7;
+    ins->rs2 = 3;
+
+    init_rv64_cpu(&cpu);
+
+    cpu.regs[7] = 5;
+    cpu.regs[3] = -1;
+    cpu.regs[5] = 2;
+
+    execute_sltu(&cpu, (void **)&ins);
+
+    TEST_ASSERT_EQUAL_INT64(1, cpu.regs[5]);
+    TEST_ASSERT_NULL(ins);
+}
+
+void test_execute_and(void)
+{
+    struct decoded_rv64_base_ins_r *ins = calloc(1, sizeof(*ins));
+    struct rv64_cpu cpu;
+
+    ins->rs2 = 3;
+    ins->rs1 = 7;
+    ins->rd  = 5;
+
+    init_rv64_cpu(&cpu);
+    cpu.regs[3] = 0xff;
+    cpu.regs[7] = 5;
+    cpu.regs[5] = 2;
+
+    execute_and(&cpu, (void **)&ins);
+
+    TEST_ASSERT_EQUAL_HEX64(0xff & 5, cpu.regs[5]);
+    TEST_ASSERT_NULL(ins);
+}
+
+void test_execute_or(void)
+{
+    struct decoded_rv64_base_ins_r *ins = calloc(1, sizeof(*ins));
+    struct rv64_cpu cpu;
+
+    ins->rd  = 5;
+    ins->rs1 = 7;
+    ins->rs2 = 3;
+
+    init_rv64_cpu(&cpu);
+    cpu.regs[3] = 0xff;
+    cpu.regs[7] = 5;
+    cpu.regs[5] = 2;
+
+    execute_or(&cpu, (void **)&ins);
+
+    TEST_ASSERT_EQUAL_HEX64(0xff | 5, cpu.regs[5]);
+    TEST_ASSERT_NULL(ins);
+}
+
+void test_execute_xor(void)
+{
+    struct decoded_rv64_base_ins_r *ins = calloc(1, sizeof(*ins));
+    struct rv64_cpu cpu;
+
+    ins->rd  = 5;
+    ins->rs1 = 7;
+    ins->rs2 = 3;
+
+    init_rv64_cpu(&cpu);
+
+    cpu.regs[3] = 0xff;
+    cpu.regs[7] = 5;
+    cpu.regs[5] = 2;
+
+    execute_xor(&cpu, (void **)&ins);
+
+    TEST_ASSERT_EQUAL_HEX64(0xff ^ 5, cpu.regs[5]);
+    TEST_ASSERT_NULL(ins);
+}
+
 int main(void)
 {
     UNITY_BEGIN();
@@ -556,6 +658,11 @@ int main(void)
     RUN_TEST(test_execute_auipc);
     RUN_TEST(test_execute_add);
     RUN_TEST(test_execute_sub);
+    RUN_TEST(test_execute_slt);
+    RUN_TEST(test_execute_slti);
+    RUN_TEST(test_execute_and);
+    RUN_TEST(test_execute_or);
+    RUN_TEST(test_execute_xor);
     return UNITY_END();
 }
 

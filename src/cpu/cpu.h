@@ -256,3 +256,18 @@ void execute_add(
 
 void execute_sub(
     struct rv64_cpu *_Nonnull cpu, void *_Nonnull *_Nonnull vdecoded_ins_r);
+
+void execute_slt(
+    struct rv64_cpu *_Nonnull cpu, void *_Nonnull *_Nonnull vdecoded_ins_r);
+
+void execute_sltu(
+    struct rv64_cpu *_Nonnull cpu, void *_Nonnull *_Nonnull vdecoded_ins_r);
+
+void execute_and(
+    struct rv64_cpu *_Nonnull cpu, void *_Nonnull *_Nonnull vdecoded_ins_r);
+
+void execute_or(
+    struct rv64_cpu *_Nonnull cpu, void *_Nonnull *_Nonnull vdecoded_ins_r);
+
+void execute_xor(
+    struct rv64_cpu *_Nonnull cpu, void *_Nonnull *_Nonnull vdecoded_ins_r);
