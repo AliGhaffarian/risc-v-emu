@@ -1,4 +1,5 @@
 #include "cpu.h"
+#include "helper.h"
 #include <assert.h>
 #include <errno.h>
 #include <stdio.h>
@@ -387,4 +388,163 @@ int decode_ins_j(
     (*ret_decoded)->imm    = decode_imm_j(ins);
 
     return 0;
+}
+
+int init_rv64_cpu(struct rv64_cpu *_Nonnull cpu)
+{
+    cpu->regs = calloc(1, BASE_REGS_NUM);
+    if(!cpu->regs) {
+        return ENOMEM;
+    }
+
+    cpu->mem = calloc(1, BASE_MEM_SIZE);
+    if(!cpu->mem) {
+        return ENOMEM;
+    }
+
+    return 0;
+}
+
+void execute_addi(
+    struct rv64_cpu *_Nonnull cpu, void *_Nonnull *_Nonnull vdecoded_ins_i)
+{
+    assert(cpu);
+    assert(vdecoded_ins_i);
+    assert(*vdecoded_ins_i);
+
+    _cleanup_free_ struct decoded_rv64_base_ins_i *decoded_ins =
+        MOVE(vdecoded_ins_i);
+
+    cpu->regs[decoded_ins->rd] = cpu->regs[decoded_ins->rs1] + decoded_ins->imm;
+}
+
+void execute_slti(
+    struct rv64_cpu *_Nonnull cpu, void *_Nonnull *_Nonnull vdecoded_ins_i)
+{
+    assert(cpu);
+    assert(vdecoded_ins_i);
+    assert(*vdecoded_ins_i);
+
+    _cleanup_free_ struct decoded_rv64_base_ins_i *decoded_ins =
+        MOVE(vdecoded_ins_i);
+
+    cpu->regs[decoded_ins->rd] =
+        (int64_t)cpu->regs[decoded_ins->rs1] < (int64_t)decoded_ins->imm ? 1
+                                                                         : 0;
+}
+
+void execute_sltiu(
+    struct rv64_cpu *_Nonnull cpu, void *_Nonnull *_Nonnull vdecoded_ins_i)
+{
+    assert(cpu);
+    assert(vdecoded_ins_i);
+    assert(*vdecoded_ins_i);
+
+    _cleanup_free_ struct decoded_rv64_base_ins_i *decoded_ins =
+        MOVE(vdecoded_ins_i);
+
+    cpu->regs[decoded_ins->rd] =
+        cpu->regs[decoded_ins->rs1] < decoded_ins->imm ? 1 : 0;
+}
+
+void execute_andi(
+    struct rv64_cpu *_Nonnull cpu, void *_Nonnull *_Nonnull vdecoded_ins_i)
+{
+    assert(cpu);
+    assert(vdecoded_ins_i);
+    assert(*vdecoded_ins_i);
+
+    _cleanup_free_ struct decoded_rv64_base_ins_i *decoded_ins =
+        MOVE(vdecoded_ins_i);
+
+    cpu->regs[decoded_ins->rd] = cpu->regs[decoded_ins->rs1] & decoded_ins->imm;
+}
+
+void execute_ori(
+    struct rv64_cpu *_Nonnull cpu, void *_Nonnull *_Nonnull vdecoded_ins_i)
+{
+    assert(cpu);
+    assert(vdecoded_ins_i);
+    assert(*vdecoded_ins_i);
+
+    _cleanup_free_ struct decoded_rv64_base_ins_i *decoded_ins =
+        MOVE(vdecoded_ins_i);
+
+    cpu->regs[decoded_ins->rd] = cpu->regs[decoded_ins->rs1] | decoded_ins->imm;
+}
+
+void execute_xori(
+    struct rv64_cpu *_Nonnull cpu, void *_Nonnull *_Nonnull vdecoded_ins_i)
+
+{
+    assert(cpu);
+    assert(vdecoded_ins_i);
+    assert(*vdecoded_ins_i);
+
+    _cleanup_free_ struct decoded_rv64_base_ins_i *decoded_ins =
+        MOVE(vdecoded_ins_i);
+
+    cpu->regs[decoded_ins->rd] = cpu->regs[decoded_ins->rs1] ^ decoded_ins->imm;
+}
+
+void execute_slli(
+    struct rv64_cpu *_Nonnull cpu, void *_Nonnull *_Nonnull vdecoded_ins_i)
+{
+    assert(cpu);
+    assert(vdecoded_ins_i);
+    assert(*vdecoded_ins_i);
+
+    _cleanup_free_ struct decoded_rv64_base_ins_i *decoded_ins =
+        MOVE(vdecoded_ins_i);
+    uint8_t shamt =
+        decoded_ins->imm & bitmask_from_bit_size(SHIFT_SHAMT_BIT_SIZE);
+
+    cpu->regs[decoded_ins->rd] = cpu->regs[decoded_ins->rs1] << shamt;
+}
+
+void execute_srlai(
+    struct rv64_cpu *_Nonnull cpu, void *_Nonnull *_Nonnull vdecoded_ins_i)
+{
+    assert(cpu);
+    assert(vdecoded_ins_i);
+    assert(*vdecoded_ins_i);
+
+    _cleanup_free_ struct decoded_rv64_base_ins_i *decoded_ins =
+        MOVE(vdecoded_ins_i);
+
+    uint64_t shift_type_bit_mask = 1 << SHIFT_RIGHT_TYPE_BIT_POS_IN_IMM;
+    uint8_t do_arithmatic_shift =
+        decoded_ins->imm & shift_type_bit_mask ? 1 : 0;
+
+    if(do_arithmatic_shift) {
+        execute_srai(cpu, decoded_ins);
+    } else {
+        execute_srli(cpu, decoded_ins);
+    }
+}
+
+void execute_srli(
+    struct rv64_cpu *_Nonnull cpu,
+    struct decoded_rv64_base_ins_i *_Nonnull decoded_ins)
+{
+    uint8_t shamt =
+        decoded_ins->imm & bitmask_from_bit_size(SHIFT_SHAMT_BIT_SIZE);
+    cpu->regs[decoded_ins->rd] = cpu->regs[decoded_ins->rs1] >> shamt;
+}
+
+void execute_srai(
+    struct rv64_cpu *_Nonnull cpu,
+    struct decoded_rv64_base_ins_i *_Nonnull decoded_ins)
+{
+    uint8_t shamt =
+        decoded_ins->imm & bitmask_from_bit_size(SHIFT_SHAMT_BIT_SIZE);
+
+    uint64_t sign_bit =
+        ((uint64_t)1 << (XLEN - 1)) & cpu->regs[decoded_ins->rs1];
+
+    cpu->regs[decoded_ins->rd] = cpu->regs[decoded_ins->rs1];
+    for(int i = 0; i < shamt; i++) {
+        cpu->regs[decoded_ins->rd] = cpu->regs[decoded_ins->rd] >> 1;
+        cpu->regs[decoded_ins->rd] |= sign_bit;
+    }
 }

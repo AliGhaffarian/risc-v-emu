@@ -18,6 +18,10 @@
 #define IMM_U_SIZE_BITS                                                        \
     IMM_J_SIZE_BITS /** U is a variant of J risc-v unpriviledge 2.3 */
 
+#define SHIFT_SHAMT_BIT_SIZE            6
+#define SHIFT_RIGHT_TYPE_BIT_POS_IN_IMM 10
+#define SHIFTW_SHAMT_BIT_SIZE           5
+
 typedef uint32_t rv64_instruction_t;
 
 typedef uint8_t uint1b_t;
@@ -37,12 +41,11 @@ typedef uint32_t uint20b_t;
 #define FUNC3_MAX  UINT3B_MAX
 #define FUNC7_MAX  UINT7B_MAX
 
+/**
+ * Rules for decode handlers:
+ *  if *ret_decoded is NULL, allocate the memory for it
+ */
 extern int (*_Nonnull ins_decode_handlers[OPCODE_MAX])(
-    rv64_instruction_t ins,
-    void *_Nullable *_Nonnull ret_decoded,
-    uint7b_t opcode);
-
-extern int (*_Nonnull execution_handlers[OPCODE_MAX][FUNC3_MAX][FUNC7_MAX])(
     rv64_instruction_t ins,
     void *_Nullable *_Nonnull ret_decoded,
     uint7b_t opcode);
@@ -90,11 +93,20 @@ enum RV64_OPCODE {
 };
 
 #define BASE_REGS_NUM (32 + 1) // 32 x regs + pc
-
+#define BASE_MEM_SIZE 1024
+#define REG_INX_PC    32
 struct rv64_cpu {
     uint64_t *_Nonnull regs;
     void *_Nonnull mem;
 };
+
+// TODO:
+// Rules for execution handlers:
+//  must steal decoded_ins
+extern void (*_Nonnull execution_handlers[OPCODE_MAX][FUNC3_MAX][FUNC7_MAX])(
+    struct rv64_cpu *_Nonnull cpu, void *_Nonnull *_Nonnull vdecoded_ins);
+
+int init_rv64_cpu(struct rv64_cpu *_Nonnull cpu);
 
 uint64_t bitmask_from_bit_size(uint64_t bit_size);
 uint64_t
@@ -115,7 +127,7 @@ struct decoded_rv64_base_ins_i {
     uint5b_t rd;
     uint3b_t func3;
     uint5b_t rs1;
-    uint32_t imm;
+    uint64_t imm;
 };
 
 struct decoded_rv64_base_ins_s {
@@ -123,7 +135,7 @@ struct decoded_rv64_base_ins_s {
     uint3b_t func3;
     uint5b_t rs1;
     uint5b_t rs2;
-    uint32_t imm;
+    uint64_t imm;
 };
 
 struct decoded_rv64_base_ins_b {
@@ -131,20 +143,20 @@ struct decoded_rv64_base_ins_b {
     uint3b_t func3;
     uint5b_t rs1;
     uint5b_t rs2;
-    uint32_t
+    uint64_t
         imm; /** decoder must shift the decoded imm to left before inserting in this field [risc-v unpriviledge 2.3] */
 };
 
 struct decoded_rv64_base_ins_u {
     uint7b_t opcode;
     uint5b_t rd;
-    uint32_t imm;
+    uint64_t imm;
 };
 
 struct decoded_rv64_base_ins_j {
     uint7b_t opcode;
     uint5b_t rd;
-    uint32_t imm;
+    uint64_t imm;
 };
 
 uint5b_t decode_rd(rv64_instruction_t ins);
@@ -186,3 +198,35 @@ uint64_t decode_imm_s(rv64_instruction_t ins);
 uint64_t decode_imm_b(rv64_instruction_t ins);
 uint64_t decode_imm_u(rv64_instruction_t ins);
 uint64_t decode_imm_j(rv64_instruction_t ins);
+
+void execute_addi(
+    struct rv64_cpu *_Nonnull cpu, void *_Nonnull *_Nonnull vdecoded_ins_i);
+
+void execute_slti(
+    struct rv64_cpu *_Nonnull cpu, void *_Nonnull *_Nonnull vdecoded_ins_i);
+
+void execute_sltiu(
+    struct rv64_cpu *_Nonnull cpu, void *_Nonnull *_Nonnull vdecoded_ins_i);
+
+void execute_andi(
+    struct rv64_cpu *_Nonnull cpu, void *_Nonnull *_Nonnull vdecoded_ins_i);
+
+void execute_ori(
+    struct rv64_cpu *_Nonnull cpu, void *_Nonnull *_Nonnull vdecoded_ins_i);
+
+void execute_xori(
+    struct rv64_cpu *_Nonnull cpu, void *_Nonnull *_Nonnull vdecoded_ins_i);
+
+void execute_slli(
+    struct rv64_cpu *_Nonnull cpu, void *_Nonnull *_Nonnull vdecoded_ins_i);
+
+void execute_srlai(
+    struct rv64_cpu *_Nonnull cpu, void *_Nonnull *_Nonnull vdecoded_ins_i);
+
+void execute_srli(
+    struct rv64_cpu *_Nonnull cpu,
+    struct decoded_rv64_base_ins_i *_Nonnull decoded_ins);
+
+void execute_srai(
+    struct rv64_cpu *_Nonnull cpu,
+    struct decoded_rv64_base_ins_i *_Nonnull decoded_ins);
