@@ -328,6 +328,44 @@ void test_execute_srlai(void)
     }
 }
 
+void test_execute_lui(void)
+{
+    struct decoded_rv64_base_ins_u *ins = calloc(1, sizeof(*ins));
+    struct rv64_cpu cpu;
+
+    ins->rd  = 5;
+    ins->imm = 0xff'00'0;
+
+    init_rv64_cpu(&cpu);
+
+    cpu.regs[5]          = -1;
+    cpu.regs[REG_INX_PC] = 0xff'00;
+
+    execute_lui(&cpu, (void **)&ins);
+
+    TEST_ASSERT_EQUAL_HEX64(0xff'00'0, cpu.regs[5]);
+    TEST_ASSERT_NULL(ins);
+}
+
+void test_execute_auipc(void)
+{
+    struct decoded_rv64_base_ins_u *ins = calloc(1, sizeof(*ins));
+    struct rv64_cpu cpu;
+
+    ins->rd  = 5;
+    ins->imm = 0xff'00'0;
+
+    init_rv64_cpu(&cpu);
+
+    cpu.regs[REG_INX_PC] = 0x0'ff'0;
+    cpu.regs[5]          = -1;
+
+    execute_auipc(&cpu, (void **)&ins);
+
+    TEST_ASSERT_EQUAL_HEX64(0xff'ff'0, cpu.regs[5]);
+    TEST_ASSERT_NULL(ins);
+}
+
 int main(void)
 {
     UNITY_BEGIN();
@@ -349,6 +387,8 @@ int main(void)
     RUN_TEST(test_execute_ori);
     RUN_TEST(test_execute_xori);
     RUN_TEST(test_execute_srlai);
+    RUN_TEST(test_execute_lui);
+    RUN_TEST(test_execute_auipc);
     return UNITY_END();
 }
 

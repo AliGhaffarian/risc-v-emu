@@ -548,3 +548,29 @@ void execute_srai(
         cpu->regs[decoded_ins->rd] |= sign_bit;
     }
 }
+
+void execute_lui(
+    struct rv64_cpu *_Nonnull cpu, void *_Nonnull *_Nonnull vdecoded_ins_u)
+{
+    assert(cpu);
+    assert(vdecoded_ins_u);
+    assert(*vdecoded_ins_u);
+
+    _cleanup_free_ struct decoded_rv64_base_ins_u *decoded_ins =
+        MOVE(vdecoded_ins_u);
+
+    cpu->regs[decoded_ins->rd] = decoded_ins->imm;
+}
+
+void execute_auipc(
+    struct rv64_cpu *_Nonnull cpu, void *_Nonnull *_Nonnull vdecoded_ins_u)
+{
+    assert(cpu);
+    assert(vdecoded_ins_u);
+    assert(*vdecoded_ins_u);
+
+    _cleanup_free_ struct decoded_rv64_base_ins_u *decoded_ins =
+        MOVE(vdecoded_ins_u);
+
+    cpu->regs[decoded_ins->rd] = decoded_ins->imm + cpu->regs[REG_INX_PC];
+}

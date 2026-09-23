@@ -230,3 +230,9 @@ void execute_srli(
 void execute_srai(
     struct rv64_cpu *_Nonnull cpu,
     struct decoded_rv64_base_ins_i *_Nonnull decoded_ins);
+
+void execute_lui(
+    struct rv64_cpu *_Nonnull cpu, void *_Nonnull *_Nonnull vdecoded_ins_u);
+
+void execute_auipc(
+    struct rv64_cpu *_Nonnull cpu, void *_Nonnull *_Nonnull vdecoded_ins_u);
