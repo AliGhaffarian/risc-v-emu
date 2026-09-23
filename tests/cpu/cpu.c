@@ -386,6 +386,30 @@ void test_execute_addiw(void)
     TEST_ASSERT_NULL(ins);
 }
 
+void test_execute_slli(void)
+{
+    struct decoded_rv64_base_ins_i *ins = calloc(1, sizeof(*ins));
+    struct rv64_cpu cpu;
+
+    ins->rd  = 5;
+    ins->rs1 = 7;
+
+    uint64_t shamt      = 16;
+    uint64_t shift_type = 0 << (5 + 5);
+
+    ins->imm = shamt + shift_type;
+
+    init_rv64_cpu(&cpu);
+
+    cpu.regs[7] = 0x80'aa'bb'cc'8d'ee'ff'11;
+    cpu.regs[5] = 2;
+
+    execute_slli(&cpu, (void **)&ins);
+
+    TEST_ASSERT_EQUAL_HEX64(0xbb'cc'8d'ee'ff'11'00'00, cpu.regs[5]);
+    TEST_ASSERT_NULL(ins);
+}
+
 void test_execute_slliw(void)
 {
     struct decoded_rv64_base_ins_i *ins = calloc(1, sizeof(*ins));
@@ -482,6 +506,7 @@ int main(void)
     RUN_TEST(test_execute_andi);
     RUN_TEST(test_execute_ori);
     RUN_TEST(test_execute_xori);
+    RUN_TEST(test_execute_slli);
     RUN_TEST(test_execute_slliw);
     RUN_TEST(test_execute_srlai);
     RUN_TEST(test_execute_srlaiw);
