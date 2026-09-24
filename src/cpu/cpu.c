@@ -358,9 +358,19 @@ int decode_ins_j(
     return 0;
 }
 
+void free_rv64_cpu(struct rv64_cpu * _Nonnull cpu)
+{
+    assert(cpu);
+
+    free(cpu->regs);
+    cpu->regs = NULL;
+    free(cpu->mem);
+    cpu->mem = NULL;
+}
+
 int init_rv64_cpu(struct rv64_cpu *_Nonnull cpu)
 {
-    cpu->regs = calloc(1, BASE_REGS_NUM);
+    cpu->regs = calloc(1, sizeof(uint64_t) * BASE_REGS_NUM);
     if(!cpu->regs) {
         return ENOMEM;
     }

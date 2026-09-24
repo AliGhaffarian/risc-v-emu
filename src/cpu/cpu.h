@@ -104,6 +104,9 @@ struct rv64_cpu {
     void *_Nonnull mem;
 };
 
+void free_rv64_cpu(struct rv64_cpu * _Nonnull cpu);
+#define _cleanup_free_rv64_cpu_ __attribute__((__cleanup__(free_rv64_cpu)))
+
 // TODO:
 // Rules for execution handlers:
 //  must steal decoded_ins
