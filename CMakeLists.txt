@@ -16,7 +16,7 @@ option(EMU_BUILD_CHECKS "enable all checks and sanitizers")
 
 if(EMU_BUILD_CHECKS)
     set(
-        CMAKE_C_CLANG_TIDY "clang-tidy")
+        CMAKE_C_CLANG_TIDY "clang-tidy;--use-color")
 
     set(
         CMAKE_C_INCLUDE_WHAT_YOU_USE "iwyu;-Xiwyu;any;-Xiwyu;iwyu;-Xiwyu;args;")
