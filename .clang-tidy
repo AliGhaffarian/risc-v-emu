@@ -8,5 +8,8 @@ Checks: >
   readability-*,
   -llvmlibc-*
 
+WarningsAsErrors: >
+  clang-analyzer-unix.MallocSizeof
+
 # Only analyze headers in src/ and tests/ (skips _deps/unity_download)
 HeaderFilterRegex: '(src|tests)/.*'

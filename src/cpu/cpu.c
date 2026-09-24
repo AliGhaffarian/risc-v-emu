@@ -272,7 +272,7 @@ int decode_ins_s(
         (struct decoded_rv64_base_ins_s **)vret_decoded;
 
     if(!(*ret_decoded)) {
-        *ret_decoded = malloc(sizeof(struct decoded_rv64_base_ins_i));
+        *ret_decoded = malloc(sizeof(struct decoded_rv64_base_ins_s));
     }
     if(!(*ret_decoded)) {
         return ENOMEM;
@@ -322,7 +322,7 @@ int decode_ins_u(
         (struct decoded_rv64_base_ins_u **)vret_decoded;
 
     if(!(*ret_decoded)) {
-        *ret_decoded = malloc(sizeof(struct decoded_rv64_base_ins_b));
+        *ret_decoded = malloc(sizeof(struct decoded_rv64_base_ins_u));
     }
     if(!(*ret_decoded)) {
         return ENOMEM;
@@ -345,7 +345,7 @@ int decode_ins_j(
         (struct decoded_rv64_base_ins_j **)vret_decoded;
 
     if(!(*ret_decoded)) {
-        *ret_decoded = malloc(sizeof(struct decoded_rv64_base_ins_b));
+        *ret_decoded = malloc(sizeof(struct decoded_rv64_base_ins_j));
     }
     if(!(*ret_decoded)) {
         return ENOMEM;
@@ -358,7 +358,7 @@ int decode_ins_j(
     return 0;
 }
 
-void free_rv64_cpu(struct rv64_cpu * _Nonnull cpu)
+void free_rv64_cpu(struct rv64_cpu *_Nonnull cpu)
 {
     assert(cpu);
 
