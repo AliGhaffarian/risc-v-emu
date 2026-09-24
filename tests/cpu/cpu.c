@@ -161,7 +161,7 @@ void test_decode_func7(void)
 void test_execute_addi(void)
 {
     struct decoded_rv64_base_ins_i *ins = calloc(1, sizeof(*ins));
-    struct rv64_cpu cpu;
+    _cleanup_free_rv64_cpu_ struct rv64_cpu cpu;
 
     ins->rd  = 5;
     ins->rs1 = 7;
@@ -181,7 +181,7 @@ void test_execute_addi(void)
 void test_execute_slti(void)
 {
     struct decoded_rv64_base_ins_i *ins = calloc(1, sizeof(*ins));
-    struct rv64_cpu cpu;
+    _cleanup_free_rv64_cpu_ struct rv64_cpu cpu;
 
     ins->rd  = 5;
     ins->rs1 = 7;
@@ -200,7 +200,7 @@ void test_execute_slti(void)
 void test_execute_sltiu(void)
 {
     struct decoded_rv64_base_ins_i *ins = calloc(1, sizeof(*ins));
-    struct rv64_cpu cpu;
+    _cleanup_free_rv64_cpu_ struct rv64_cpu cpu;
 
     ins->rd  = 5;
     ins->rs1 = 7;
@@ -220,7 +220,7 @@ void test_execute_sltiu(void)
 void test_execute_andi(void)
 {
     struct decoded_rv64_base_ins_i *ins = calloc(1, sizeof(*ins));
-    struct rv64_cpu cpu;
+    _cleanup_free_rv64_cpu_ struct rv64_cpu cpu;
 
     ins->rd  = 5;
     ins->rs1 = 7;
@@ -240,7 +240,7 @@ void test_execute_andi(void)
 void test_execute_ori(void)
 {
     struct decoded_rv64_base_ins_i *ins = calloc(1, sizeof(*ins));
-    struct rv64_cpu cpu;
+    _cleanup_free_rv64_cpu_ struct rv64_cpu cpu;
 
     ins->rd  = 5;
     ins->rs1 = 7;
@@ -260,7 +260,7 @@ void test_execute_ori(void)
 void test_execute_xori(void)
 {
     struct decoded_rv64_base_ins_i *ins = calloc(1, sizeof(*ins));
-    struct rv64_cpu cpu;
+    _cleanup_free_rv64_cpu_ struct rv64_cpu cpu;
 
     ins->rd  = 5;
     ins->rs1 = 7;
@@ -282,7 +282,7 @@ void test_execute_srlai(void)
     // arithmetic
     {
         struct decoded_rv64_base_ins_i *ins = calloc(1, sizeof(*ins));
-        struct rv64_cpu cpu;
+        _cleanup_free_rv64_cpu_ struct rv64_cpu cpu;
 
         ins->rd  = 5;
         ins->rs1 = 7;
@@ -306,7 +306,7 @@ void test_execute_srlai(void)
     // logical
     {
         struct decoded_rv64_base_ins_i *ins = calloc(1, sizeof(*ins));
-        struct rv64_cpu cpu;
+        _cleanup_free_rv64_cpu_ struct rv64_cpu cpu;
 
         ins->rd  = 5;
         ins->rs1 = 7;
@@ -331,7 +331,7 @@ void test_execute_srlai(void)
 void test_execute_lui(void)
 {
     struct decoded_rv64_base_ins_u *ins = calloc(1, sizeof(*ins));
-    struct rv64_cpu cpu;
+    _cleanup_free_rv64_cpu_ struct rv64_cpu cpu;
 
     ins->rd  = 5;
     ins->imm = 0xff'00'0;
@@ -350,7 +350,7 @@ void test_execute_lui(void)
 void test_execute_auipc(void)
 {
     struct decoded_rv64_base_ins_u *ins = calloc(1, sizeof(*ins));
-    struct rv64_cpu cpu;
+    _cleanup_free_rv64_cpu_ struct rv64_cpu cpu;
 
     ins->rd  = 5;
     ins->imm = 0xff'00'0;
@@ -369,7 +369,7 @@ void test_execute_auipc(void)
 void test_execute_addiw(void)
 {
     struct decoded_rv64_base_ins_i *ins = calloc(1, sizeof(*ins));
-    struct rv64_cpu cpu;
+    _cleanup_free_rv64_cpu_ struct rv64_cpu cpu;
 
     ins->rd  = 5;
     ins->rs1 = 7;
@@ -389,7 +389,7 @@ void test_execute_addiw(void)
 void test_execute_slli(void)
 {
     struct decoded_rv64_base_ins_i *ins = calloc(1, sizeof(*ins));
-    struct rv64_cpu cpu;
+    _cleanup_free_rv64_cpu_ struct rv64_cpu cpu;
 
     ins->rd  = 5;
     ins->rs1 = 7;
@@ -413,7 +413,7 @@ void test_execute_slli(void)
 void test_execute_slliw(void)
 {
     struct decoded_rv64_base_ins_i *ins = calloc(1, sizeof(*ins));
-    struct rv64_cpu cpu;
+    _cleanup_free_rv64_cpu_ struct rv64_cpu cpu;
 
     ins->rd  = 5;
     ins->rs1 = 7;
@@ -439,7 +439,7 @@ void test_execute_srlaiw(void)
     // arithmetic
     {
         struct decoded_rv64_base_ins_i *ins = calloc(1, sizeof(*ins));
-        struct rv64_cpu cpu;
+        _cleanup_free_rv64_cpu_ struct rv64_cpu cpu;
 
         ins->rd  = 5;
         ins->rs1 = 7;
@@ -463,7 +463,7 @@ void test_execute_srlaiw(void)
     // logical
     {
         struct decoded_rv64_base_ins_i *ins = calloc(1, sizeof(*ins));
-        struct rv64_cpu cpu;
+        _cleanup_free_rv64_cpu_ struct rv64_cpu cpu;
 
         ins->rd  = 5;
         ins->rs1 = 7;
@@ -488,7 +488,7 @@ void test_execute_srlaiw(void)
 void test_execute_add(void)
 {
     struct decoded_rv64_base_ins_r *ins = calloc(1, sizeof(*ins));
-    struct rv64_cpu cpu;
+    _cleanup_free_rv64_cpu_ struct rv64_cpu cpu;
 
     ins->rd  = 5;
     ins->rs1 = 7;
@@ -509,7 +509,7 @@ void test_execute_add(void)
 void test_execute_sub(void)
 {
     struct decoded_rv64_base_ins_r *ins = calloc(1, sizeof(*ins));
-    struct rv64_cpu cpu;
+    _cleanup_free_rv64_cpu_ struct rv64_cpu cpu;
 
     ins->rd  = 5;
     ins->rs1 = 7;
@@ -530,7 +530,7 @@ void test_execute_sub(void)
 void test_execute_slt(void)
 {
     struct decoded_rv64_base_ins_r *ins = calloc(1, sizeof(*ins));
-    struct rv64_cpu cpu;
+    _cleanup_free_rv64_cpu_ struct rv64_cpu cpu;
 
     ins->rd  = 5;
     ins->rs1 = 7;
@@ -550,7 +550,7 @@ void test_execute_slt(void)
 void test_execute_sltu(void)
 {
     struct decoded_rv64_base_ins_r *ins = calloc(1, sizeof(*ins));
-    struct rv64_cpu cpu;
+    _cleanup_free_rv64_cpu_ struct rv64_cpu cpu;
 
     ins->rd  = 5;
     ins->rs1 = 7;
@@ -571,7 +571,7 @@ void test_execute_sltu(void)
 void test_execute_and(void)
 {
     struct decoded_rv64_base_ins_r *ins = calloc(1, sizeof(*ins));
-    struct rv64_cpu cpu;
+    _cleanup_free_rv64_cpu_ struct rv64_cpu cpu;
 
     ins->rs2 = 3;
     ins->rs1 = 7;
@@ -591,7 +591,7 @@ void test_execute_and(void)
 void test_execute_or(void)
 {
     struct decoded_rv64_base_ins_r *ins = calloc(1, sizeof(*ins));
-    struct rv64_cpu cpu;
+    _cleanup_free_rv64_cpu_ struct rv64_cpu cpu;
 
     ins->rd  = 5;
     ins->rs1 = 7;
@@ -611,7 +611,7 @@ void test_execute_or(void)
 void test_execute_xor(void)
 {
     struct decoded_rv64_base_ins_r *ins = calloc(1, sizeof(*ins));
-    struct rv64_cpu cpu;
+    _cleanup_free_rv64_cpu_ struct rv64_cpu cpu;
 
     ins->rd  = 5;
     ins->rs1 = 7;
@@ -632,7 +632,7 @@ void test_execute_xor(void)
 void test_execute_jal(void)
 {
     struct decoded_rv64_base_ins_j *ins = calloc(1, sizeof(*ins));
-    struct rv64_cpu cpu;
+    _cleanup_free_rv64_cpu_ struct rv64_cpu cpu;
 
     ins->rd  = 5;
     ins->imm = 0xaa;
@@ -652,7 +652,7 @@ void test_execute_jal(void)
 void test_execute_jalr(void)
 {
     struct decoded_rv64_base_ins_i *ins = calloc(1, sizeof(*ins));
-    struct rv64_cpu cpu;
+    _cleanup_free_rv64_cpu_ struct rv64_cpu cpu;
 
     ins->rd  = 5;
     ins->rs1 = 3;
@@ -674,7 +674,7 @@ void test_execute_jalr(void)
 void test_execute_sll(void)
 {
     struct decoded_rv64_base_ins_r *ins = calloc(1, sizeof(*ins));
-    struct rv64_cpu cpu;
+    _cleanup_free_rv64_cpu_ struct rv64_cpu cpu;
 
     ins->rd  = 5;
     ins->rs1 = 7;
@@ -702,7 +702,7 @@ void test_execute_srla(void)
     // arithmetic
     {
         struct decoded_rv64_base_ins_r *ins = calloc(1, sizeof(*ins));
-        struct rv64_cpu cpu;
+        _cleanup_free_rv64_cpu_ struct rv64_cpu cpu;
 
         ins->rd  = 5;
         ins->rs1 = 7;
@@ -728,7 +728,7 @@ void test_execute_srla(void)
     // logical
     {
         struct decoded_rv64_base_ins_r *ins = calloc(1, sizeof(*ins));
-        struct rv64_cpu cpu;
+        _cleanup_free_rv64_cpu_ struct rv64_cpu cpu;
 
         ins->rd  = 5;
         ins->rs1 = 7;
@@ -755,7 +755,7 @@ void test_execute_srla(void)
 void test_execute_addw(void)
 {
     struct decoded_rv64_base_ins_r *ins = calloc(1, sizeof(*ins));
-    struct rv64_cpu cpu;
+    _cleanup_free_rv64_cpu_ struct rv64_cpu cpu;
 
     ins->rd  = 5;
     ins->rs1 = 7;
@@ -776,7 +776,7 @@ void test_execute_addw(void)
 void test_execute_sllw(void)
 {
     struct decoded_rv64_base_ins_r *ins = calloc(1, sizeof(*ins));
-    struct rv64_cpu cpu;
+    _cleanup_free_rv64_cpu_ struct rv64_cpu cpu;
 
     ins->rd  = 5;
     ins->rs1 = 7;
@@ -804,7 +804,7 @@ void test_execute_srlaw(void)
     // arithmetic
     {
         struct decoded_rv64_base_ins_r *ins = calloc(1, sizeof(*ins));
-        struct rv64_cpu cpu;
+        _cleanup_free_rv64_cpu_ struct rv64_cpu cpu;
 
         ins->rd  = 5;
         ins->rs1 = 7;
@@ -830,7 +830,7 @@ void test_execute_srlaw(void)
     // logical
     {
         struct decoded_rv64_base_ins_r *ins = calloc(1, sizeof(*ins));
-        struct rv64_cpu cpu;
+        _cleanup_free_rv64_cpu_ struct rv64_cpu cpu;
 
         ins->rd  = 5;
         ins->rs1 = 7;
@@ -857,7 +857,7 @@ void test_execute_srlaw(void)
 void test_execute_subw(void)
 {
     struct decoded_rv64_base_ins_r *ins = calloc(1, sizeof(*ins));
-    struct rv64_cpu cpu;
+    _cleanup_free_rv64_cpu_ struct rv64_cpu cpu;
 
     ins->rd  = 5;
     ins->rs1 = 7;
