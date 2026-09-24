@@ -25,6 +25,7 @@ if(EMU_BUILD_CHECKS)
 
     set(
         CMAKE_C_LINK_WHAT_YOU_USE)
+    add_compile_options("-g")
 endif()
 
 if(EMU_BUILD_TESTING)
