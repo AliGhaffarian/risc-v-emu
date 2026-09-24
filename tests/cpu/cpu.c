@@ -874,6 +874,277 @@ void test_execute_subw(void)
     TEST_ASSERT_EQUAL_HEX64(0xff'ff'ff'ff'ff'aa'bb'09, cpu.regs[5]);
     TEST_ASSERT_NULL(ins);
 }
+
+void test_execute_beq(void)
+{
+    // take the branch
+    {
+        struct decoded_rv64_base_ins_b *ins = calloc(1, sizeof(*ins));
+        _cleanup_free_rv64_cpu_ struct rv64_cpu cpu;
+
+        ins->rs1 = 7;
+        ins->rs2 = 8;
+        ins->imm = 0xf'00'00;
+
+        init_rv64_cpu(&cpu);
+
+        cpu.regs[REG_INX_PC] = 0xff'ff;
+        cpu.regs[7]          = 1;
+        cpu.regs[8]          = 1;
+
+        execute_beq(&cpu, (void **)&ins);
+
+        TEST_ASSERT_EQUAL_HEX64(0x0f'ff'ff, cpu.regs[REG_INX_PC]);
+        TEST_ASSERT_NULL(ins);
+    }
+
+    // don't take the branch
+    {
+        struct decoded_rv64_base_ins_b *ins = calloc(1, sizeof(*ins));
+        _cleanup_free_rv64_cpu_ struct rv64_cpu cpu;
+
+        ins->rs1 = 7;
+        ins->rs2 = 8;
+        ins->imm = 0xf'00'00;
+
+        init_rv64_cpu(&cpu);
+
+        cpu.regs[REG_INX_PC] = 0xff'ff;
+        cpu.regs[7]          = 1;
+        cpu.regs[8]          = -1;
+
+        execute_beq(&cpu, (void **)&ins);
+
+        TEST_ASSERT_EQUAL_HEX64(0x00'ff'ff, cpu.regs[REG_INX_PC]);
+        TEST_ASSERT_NULL(ins);
+    }
+}
+
+void test_execute_bne(void)
+{
+    // take the branch
+    {
+        struct decoded_rv64_base_ins_b *ins = calloc(1, sizeof(*ins));
+        _cleanup_free_rv64_cpu_ struct rv64_cpu cpu;
+
+        ins->rs1 = 7;
+        ins->rs2 = 8;
+        ins->imm = 0xf'00'00;
+
+        init_rv64_cpu(&cpu);
+
+        cpu.regs[REG_INX_PC] = 0xff'ff;
+        cpu.regs[7]          = 1;
+        cpu.regs[8]          = -1;
+
+        execute_bne(&cpu, (void **)&ins);
+
+        TEST_ASSERT_EQUAL_HEX64(0x0f'ff'ff, cpu.regs[REG_INX_PC]);
+        TEST_ASSERT_NULL(ins);
+    }
+
+    // don't take the branch
+    {
+        struct decoded_rv64_base_ins_b *ins = calloc(1, sizeof(*ins));
+        _cleanup_free_rv64_cpu_ struct rv64_cpu cpu;
+
+        ins->rs1 = 7;
+        ins->rs2 = 8;
+        ins->imm = 0xf'00'00;
+
+        init_rv64_cpu(&cpu);
+
+        cpu.regs[REG_INX_PC] = 0xff'ff;
+        cpu.regs[7]          = 1;
+        cpu.regs[8]          = 1;
+
+        execute_bne(&cpu, (void **)&ins);
+
+        TEST_ASSERT_EQUAL_HEX64(0x00'ff'ff, cpu.regs[REG_INX_PC]);
+        TEST_ASSERT_NULL(ins);
+    }
+}
+
+void test_execute_blt(void)
+{
+    // take the branch
+    {
+        struct decoded_rv64_base_ins_b *ins = calloc(1, sizeof(*ins));
+        _cleanup_free_rv64_cpu_ struct rv64_cpu cpu;
+
+        ins->rs1 = 7;
+        ins->rs2 = 8;
+        ins->imm = 0xf'00'00;
+
+        init_rv64_cpu(&cpu);
+
+        cpu.regs[REG_INX_PC] = 0xff'ff;
+        cpu.regs[7]          = -1;
+        cpu.regs[8]          = 1;
+
+        execute_blt(&cpu, (void **)&ins);
+
+        TEST_ASSERT_EQUAL_HEX64(0x0f'ff'ff, cpu.regs[REG_INX_PC]);
+        TEST_ASSERT_NULL(ins);
+    }
+
+    // don't take the branch
+    {
+        struct decoded_rv64_base_ins_b *ins = calloc(1, sizeof(*ins));
+        _cleanup_free_rv64_cpu_ struct rv64_cpu cpu;
+
+        ins->rs1 = 7;
+        ins->rs2 = 8;
+        ins->imm = 0xf'00'00;
+
+        init_rv64_cpu(&cpu);
+
+        cpu.regs[REG_INX_PC] = 0xff'ff;
+        cpu.regs[7]          = 1;
+        cpu.regs[8]          = -1;
+
+        execute_blt(&cpu, (void **)&ins);
+
+        TEST_ASSERT_EQUAL_HEX64(0x00'ff'ff, cpu.regs[REG_INX_PC]);
+        TEST_ASSERT_NULL(ins);
+    }
+}
+
+void test_execute_bltu(void)
+{
+    // take the branch
+    {
+        struct decoded_rv64_base_ins_b *ins = calloc(1, sizeof(*ins));
+        _cleanup_free_rv64_cpu_ struct rv64_cpu cpu;
+
+        ins->rs1 = 7;
+        ins->rs2 = 8;
+        ins->imm = 0xf'00'00;
+
+        init_rv64_cpu(&cpu);
+
+        cpu.regs[REG_INX_PC] = 0xff'ff;
+        cpu.regs[7]          = 1;
+        cpu.regs[8]          = -1;
+
+        execute_bltu(&cpu, (void **)&ins);
+
+        TEST_ASSERT_EQUAL_HEX64(0x0f'ff'ff, cpu.regs[REG_INX_PC]);
+        TEST_ASSERT_NULL(ins);
+    }
+
+    // don't take the branch
+    {
+        struct decoded_rv64_base_ins_b *ins = calloc(1, sizeof(*ins));
+        _cleanup_free_rv64_cpu_ struct rv64_cpu cpu;
+
+        ins->rs1 = 7;
+        ins->rs2 = 8;
+        ins->imm = 0xf'00'00;
+
+        init_rv64_cpu(&cpu);
+
+        cpu.regs[REG_INX_PC] = 0xff'ff;
+        cpu.regs[7]          = -1;
+        cpu.regs[8]          = 1;
+
+        execute_bltu(&cpu, (void **)&ins);
+
+        TEST_ASSERT_EQUAL_HEX64(0x00'ff'ff, cpu.regs[REG_INX_PC]);
+        TEST_ASSERT_NULL(ins);
+    }
+}
+
+void test_execute_bge(void)
+{
+    // take the branch
+    {
+        struct decoded_rv64_base_ins_b *ins = calloc(1, sizeof(*ins));
+        _cleanup_free_rv64_cpu_ struct rv64_cpu cpu;
+
+        ins->rs1 = 7;
+        ins->rs2 = 8;
+        ins->imm = 0xf'00'00;
+
+        init_rv64_cpu(&cpu);
+
+        cpu.regs[REG_INX_PC] = 0xff'ff;
+        cpu.regs[7]          = 1;
+        cpu.regs[8]          = -1;
+
+        execute_bge(&cpu, (void **)&ins);
+
+        TEST_ASSERT_EQUAL_HEX64(0x0f'ff'ff, cpu.regs[REG_INX_PC]);
+        TEST_ASSERT_NULL(ins);
+    }
+
+    // don't take the branch
+    {
+        struct decoded_rv64_base_ins_b *ins = calloc(1, sizeof(*ins));
+        _cleanup_free_rv64_cpu_ struct rv64_cpu cpu;
+
+        ins->rs1 = 7;
+        ins->rs2 = 8;
+        ins->imm = 0xf'00'00;
+
+        init_rv64_cpu(&cpu);
+
+        cpu.regs[REG_INX_PC] = 0xff'ff;
+        cpu.regs[7]          = -1;
+        cpu.regs[8]          = 1;
+
+        execute_bge(&cpu, (void **)&ins);
+
+        TEST_ASSERT_EQUAL_HEX64(0x00'ff'ff, cpu.regs[REG_INX_PC]);
+        TEST_ASSERT_NULL(ins);
+    }
+}
+
+void test_execute_bgeu(void)
+{
+    // take the branch
+    {
+        struct decoded_rv64_base_ins_b *ins = calloc(1, sizeof(*ins));
+        _cleanup_free_rv64_cpu_ struct rv64_cpu cpu;
+
+        ins->rs1 = 7;
+        ins->rs2 = 8;
+        ins->imm = 0xf'00'00;
+
+        init_rv64_cpu(&cpu);
+
+        cpu.regs[REG_INX_PC] = 0xff'ff;
+        cpu.regs[7]          = -1;
+        cpu.regs[8]          = 1;
+
+        execute_bgeu(&cpu, (void **)&ins);
+
+        TEST_ASSERT_EQUAL_HEX64(0x0f'ff'ff, cpu.regs[REG_INX_PC]);
+        TEST_ASSERT_NULL(ins);
+    }
+
+    // don't take the branch
+    {
+        struct decoded_rv64_base_ins_b *ins = calloc(1, sizeof(*ins));
+        _cleanup_free_rv64_cpu_ struct rv64_cpu cpu;
+
+        ins->rs1 = 7;
+        ins->rs2 = 8;
+        ins->imm = 0xf'00'00;
+
+        init_rv64_cpu(&cpu);
+
+        cpu.regs[REG_INX_PC] = 0xff'ff;
+        cpu.regs[7]          = 1;
+        cpu.regs[8]          = -1;
+
+        execute_bgeu(&cpu, (void **)&ins);
+
+        TEST_ASSERT_EQUAL_HEX64(0x00'ff'ff, cpu.regs[REG_INX_PC]);
+        TEST_ASSERT_NULL(ins);
+    }
+}
+
 int main(void)
 {
     UNITY_BEGIN();
@@ -916,6 +1187,13 @@ int main(void)
     RUN_TEST(test_execute_sllw);
     RUN_TEST(test_execute_srlaw);
     RUN_TEST(test_execute_subw);
+
+    RUN_TEST(test_execute_beq);
+    RUN_TEST(test_execute_bne);
+    RUN_TEST(test_execute_blt);
+    RUN_TEST(test_execute_bltu);
+    RUN_TEST(test_execute_bge);
+    RUN_TEST(test_execute_bgeu);
     return UNITY_END();
 }
 

@@ -921,3 +921,98 @@ void execute_subw(
 
     cpu->regs[decoded_ins->rd] = sign_extend_u32_to_u64(lower_rs1 - lower_rs2);
 }
+
+/** TODO: rv64 unprivileged 2.5: The conditional branch instructions will generate an instruction-address-misaligned exception if the
+ *  target address is not aligned to a four-byte boundary and the branch condition evaluates to true. If the
+ *  branch condition evaluates to false, the instruction-address-misaligned exception will not be raised.
+ */
+void execute_beq(
+    struct rv64_cpu *_Nonnull cpu, void *_Nonnull *_Nonnull vdecoded_ins_b)
+{
+    assert(cpu);
+    assert(vdecoded_ins_b);
+    assert(*vdecoded_ins_b);
+
+    _cleanup_free_ struct decoded_rv64_base_ins_b *decoded_ins =
+        MOVE(vdecoded_ins_b);
+
+    if(cpu->regs[decoded_ins->rs1] == cpu->regs[decoded_ins->rs2]) {
+        cpu->regs[REG_INX_PC] += decoded_ins->imm;
+    }
+}
+
+void execute_bne(
+    struct rv64_cpu *_Nonnull cpu, void *_Nonnull *_Nonnull vdecoded_ins_b)
+{
+    assert(cpu);
+    assert(vdecoded_ins_b);
+    assert(*vdecoded_ins_b);
+
+    _cleanup_free_ struct decoded_rv64_base_ins_b *decoded_ins =
+        MOVE(vdecoded_ins_b);
+
+    if(cpu->regs[decoded_ins->rs1] != cpu->regs[decoded_ins->rs2]) {
+        cpu->regs[REG_INX_PC] += decoded_ins->imm;
+    }
+}
+
+void execute_blt(
+    struct rv64_cpu *_Nonnull cpu, void *_Nonnull *_Nonnull vdecoded_ins_b)
+{
+    assert(cpu);
+    assert(vdecoded_ins_b);
+    assert(*vdecoded_ins_b);
+
+    _cleanup_free_ struct decoded_rv64_base_ins_b *decoded_ins =
+        MOVE(vdecoded_ins_b);
+
+    if((int64_t)cpu->regs[decoded_ins->rs1] <
+       (int64_t)cpu->regs[decoded_ins->rs2]) {
+        cpu->regs[REG_INX_PC] += decoded_ins->imm;
+    }
+}
+
+void execute_bltu(
+    struct rv64_cpu *_Nonnull cpu, void *_Nonnull *_Nonnull vdecoded_ins_b)
+{
+    assert(cpu);
+    assert(vdecoded_ins_b);
+    assert(*vdecoded_ins_b);
+
+    _cleanup_free_ struct decoded_rv64_base_ins_b *decoded_ins =
+        MOVE(vdecoded_ins_b);
+
+    if(cpu->regs[decoded_ins->rs1] < cpu->regs[decoded_ins->rs2]) {
+        cpu->regs[REG_INX_PC] += decoded_ins->imm;
+    }
+}
+
+void execute_bge(
+    struct rv64_cpu *_Nonnull cpu, void *_Nonnull *_Nonnull vdecoded_ins_b)
+{
+    assert(cpu);
+    assert(vdecoded_ins_b);
+    assert(*vdecoded_ins_b);
+
+    _cleanup_free_ struct decoded_rv64_base_ins_b *decoded_ins =
+        MOVE(vdecoded_ins_b);
+
+    if((int64_t)cpu->regs[decoded_ins->rs1] >=
+       (int64_t)cpu->regs[decoded_ins->rs2]) {
+        cpu->regs[REG_INX_PC] += decoded_ins->imm;
+    }
+}
+void execute_bgeu(
+    struct rv64_cpu *_Nonnull cpu, void *_Nonnull *_Nonnull vdecoded_ins_b)
+{
+    assert(cpu);
+    assert(vdecoded_ins_b);
+    assert(*vdecoded_ins_b);
+
+    _cleanup_free_ struct decoded_rv64_base_ins_b *decoded_ins =
+        MOVE(vdecoded_ins_b);
+
+    if(cpu->regs[decoded_ins->rs1] >= cpu->regs[decoded_ins->rs2]) {
+        cpu->regs[REG_INX_PC] += decoded_ins->imm;
+    }
+}

@@ -104,7 +104,7 @@ struct rv64_cpu {
     void *_Nonnull mem;
 };
 
-void free_rv64_cpu(struct rv64_cpu * _Nonnull cpu);
+void free_rv64_cpu(struct rv64_cpu *_Nonnull cpu);
 #define _cleanup_free_rv64_cpu_ __attribute__((__cleanup__(free_rv64_cpu)))
 
 // TODO:
@@ -315,3 +315,25 @@ void execute_sraw(
 
 void execute_subw(
     struct rv64_cpu *_Nonnull cpu, void *_Nonnull *_Nonnull vdecoded_ins_r);
+
+/** TODO: rv64 unprivileged 2.5: The conditional branch instructions will generate an instruction-address-misaligned exception if the
+ *  target address is not aligned to a four-byte boundary and the branch condition evaluates to true. If the
+ *  branch condition evaluates to false, the instruction-address-misaligned exception will not be raised.
+ */
+void execute_beq(
+    struct rv64_cpu *_Nonnull cpu, void *_Nonnull *_Nonnull vdecoded_ins_b);
+
+void execute_bne(
+    struct rv64_cpu *_Nonnull cpu, void *_Nonnull *_Nonnull vdecoded_ins_b);
+
+void execute_blt(
+    struct rv64_cpu *_Nonnull cpu, void *_Nonnull *_Nonnull vdecoded_ins_b);
+
+void execute_bltu(
+    struct rv64_cpu *_Nonnull cpu, void *_Nonnull *_Nonnull vdecoded_ins_b);
+
+void execute_bge(
+    struct rv64_cpu *_Nonnull cpu, void *_Nonnull *_Nonnull vdecoded_ins_b);
+
+void execute_bgeu(
+    struct rv64_cpu *_Nonnull cpu, void *_Nonnull *_Nonnull vdecoded_ins_b);
