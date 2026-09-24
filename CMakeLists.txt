@@ -14,8 +14,6 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
 option(EMU_BUILD_TESTING "enable testing" ${BUILD_TESTING})
 option(EMU_BUILD_CHECKS "enable all checks and sanitizers")
 
-add_subdirectory(src)
-
 if(EMU_BUILD_CHECKS)
     set(
         CMAKE_C_CLANG_TIDY "clang-tidy")
@@ -27,6 +25,8 @@ if(EMU_BUILD_CHECKS)
         CMAKE_C_LINK_WHAT_YOU_USE)
     add_compile_options("-g")
 endif()
+
+add_subdirectory(src)
 
 if(EMU_BUILD_TESTING)
     add_subdirectory(tests)
