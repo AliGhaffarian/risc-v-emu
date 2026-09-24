@@ -723,3 +723,191 @@ void execute_xor(
     cpu->regs[decoded_ins->rd] =
         cpu->regs[decoded_ins->rs1] ^ cpu->regs[decoded_ins->rs2];
 }
+
+void execute_jal(
+    struct rv64_cpu *_Nonnull cpu, void *_Nonnull *_Nonnull vdecoded_ins_j)
+{
+    assert(cpu);
+    assert(vdecoded_ins_j);
+    assert(*vdecoded_ins_j);
+
+    _cleanup_free_ struct decoded_rv64_base_ins_j *decoded_ins =
+        MOVE(vdecoded_ins_j);
+
+    cpu->regs[decoded_ins->rd] = cpu->regs[REG_INX_PC] + 4;
+    cpu->regs[REG_INX_PC] += decoded_ins->imm;
+}
+
+void execute_jalr(
+    struct rv64_cpu *_Nonnull cpu, void *_Nonnull *_Nonnull vdecoded_ins_i)
+{
+    assert(cpu);
+    assert(vdecoded_ins_i);
+    assert(*vdecoded_ins_i);
+
+    _cleanup_free_ struct decoded_rv64_base_ins_i *decoded_ins =
+        MOVE(vdecoded_ins_i);
+
+    cpu->regs[decoded_ins->rd] = cpu->regs[REG_INX_PC] + 4;
+
+    cpu->regs[REG_INX_PC] = (cpu->regs[decoded_ins->rs1] + decoded_ins->imm);
+
+    cpu->regs[REG_INX_PC] >>= 1;
+    cpu->regs[REG_INX_PC] <<= 1;
+}
+
+void execute_sll(
+    struct rv64_cpu *_Nonnull cpu, void *_Nonnull *_Nonnull vdecoded_ins_r)
+{
+    assert(cpu);
+    assert(vdecoded_ins_r);
+    assert(*vdecoded_ins_r);
+
+    _cleanup_free_ struct decoded_rv64_base_ins_r *decoded_ins =
+        MOVE(vdecoded_ins_r);
+    uint8_t shamt = cpu->regs[decoded_ins->rs2] &
+                    bitmask_from_bit_size(SHIFT_SHAMT_BIT_SIZE);
+
+    cpu->regs[decoded_ins->rd] = cpu->regs[decoded_ins->rs1] << shamt;
+}
+
+void execute_srla(
+    struct rv64_cpu *_Nonnull cpu, void *_Nonnull *_Nonnull vdecoded_ins_r)
+{
+    assert(cpu);
+    assert(vdecoded_ins_r);
+    assert(*vdecoded_ins_r);
+
+    _cleanup_free_ struct decoded_rv64_base_ins_r *decoded_ins =
+        MOVE(vdecoded_ins_r);
+
+    uint64_t shift_type_bit_mask = 1 << SHIFT_RIGHT_TYPE_BIT_POS_IN_FUNC7;
+    uint8_t do_arithmatic_shift =
+        decoded_ins->func7 & shift_type_bit_mask ? 1 : 0;
+
+    if(do_arithmatic_shift) {
+        execute_sra(cpu, decoded_ins);
+    } else {
+        execute_srl(cpu, decoded_ins);
+    }
+}
+
+void execute_srl(
+    struct rv64_cpu *_Nonnull cpu,
+    struct decoded_rv64_base_ins_r *_Nonnull decoded_ins)
+{
+    uint8_t shamt              = cpu->regs[decoded_ins->rs2] &
+                                 bitmask_from_bit_size(SHIFT_SHAMT_BIT_SIZE);
+    cpu->regs[decoded_ins->rd] = cpu->regs[decoded_ins->rs1] >> shamt;
+}
+
+void execute_sra(
+    struct rv64_cpu *_Nonnull cpu,
+    struct decoded_rv64_base_ins_r *_Nonnull decoded_ins)
+{
+    uint8_t shamt = cpu->regs[decoded_ins->rs2] &
+                    bitmask_from_bit_size(SHIFT_SHAMT_BIT_SIZE);
+
+    uint64_t sign_bit = GET_SIGN_BIT(cpu->regs[decoded_ins->rs1]) << (XLEN - 1);
+
+    cpu->regs[decoded_ins->rd] = cpu->regs[decoded_ins->rs1];
+    for(int i = 0; i < shamt; i++) {
+        cpu->regs[decoded_ins->rd] = cpu->regs[decoded_ins->rd] >> 1;
+        cpu->regs[decoded_ins->rd] |= sign_bit;
+    }
+}
+
+void execute_addw(
+    struct rv64_cpu *_Nonnull cpu, void *_Nonnull *_Nonnull vdecoded_ins_r)
+{
+    assert(cpu);
+    assert(vdecoded_ins_r);
+    assert(*vdecoded_ins_r);
+
+    _cleanup_free_ struct decoded_rv64_base_ins_r *decoded_ins =
+        MOVE(vdecoded_ins_r);
+    uint32_t lower_rs1 = cpu->regs[decoded_ins->rs1];
+    uint32_t lower_rs2 = cpu->regs[decoded_ins->rs2];
+
+    cpu->regs[decoded_ins->rd] = sign_extend_u32_to_u64(lower_rs1 + lower_rs2);
+}
+
+void execute_sllw(
+    struct rv64_cpu *_Nonnull cpu, void *_Nonnull *_Nonnull vdecoded_ins_r)
+{
+    assert(cpu);
+    assert(vdecoded_ins_r);
+    assert(*vdecoded_ins_r);
+
+    _cleanup_free_ struct decoded_rv64_base_ins_r *decoded_ins =
+        MOVE(vdecoded_ins_r);
+    uint8_t shamt      = cpu->regs[decoded_ins->rs2] &
+                         bitmask_from_bit_size(SHIFTW_SHAMT_BIT_SIZE);
+    uint32_t lower_rs1 = cpu->regs[decoded_ins->rs1];
+
+    cpu->regs[decoded_ins->rd] = sign_extend_u32_to_u64(lower_rs1 << shamt);
+}
+
+void execute_srlaw(
+    struct rv64_cpu *_Nonnull cpu, void *_Nonnull *_Nonnull vdecoded_ins_r)
+{
+    assert(cpu);
+    assert(vdecoded_ins_r);
+    assert(*vdecoded_ins_r);
+
+    _cleanup_free_ struct decoded_rv64_base_ins_r *decoded_ins =
+        MOVE(vdecoded_ins_r);
+
+    uint64_t shift_type_bit_mask = 1 << SHIFT_RIGHT_TYPE_BIT_POS_IN_FUNC7;
+    uint8_t do_arithmatic_shift =
+        decoded_ins->func7 & shift_type_bit_mask ? 1 : 0;
+
+    if(do_arithmatic_shift) {
+        execute_sraw(cpu, decoded_ins);
+    } else {
+        execute_srlw(cpu, decoded_ins);
+    }
+}
+
+void execute_srlw(
+    struct rv64_cpu *_Nonnull cpu,
+    struct decoded_rv64_base_ins_r *_Nonnull decoded_ins)
+{
+    uint8_t shamt              = cpu->regs[decoded_ins->rs2] &
+                                 bitmask_from_bit_size(SHIFTW_SHAMT_BIT_SIZE);
+    uint32_t lower_rs1         = cpu->regs[decoded_ins->rs1];
+    cpu->regs[decoded_ins->rd] = sign_extend_u32_to_u64(lower_rs1 >> shamt);
+}
+
+void execute_sraw(
+    struct rv64_cpu *_Nonnull cpu,
+    struct decoded_rv64_base_ins_r *_Nonnull decoded_ins)
+{
+    uint8_t shamt = cpu->regs[decoded_ins->rs2] &
+                    bitmask_from_bit_size(SHIFTW_SHAMT_BIT_SIZE);
+
+    uint32_t lower_rs1 = cpu->regs[decoded_ins->rs1];
+    uint32_t sign_bit  = GET_SIGN_BIT(lower_rs1) << ((XLEN / 2) - 1);
+
+    for(int i = 0; i < shamt; i++) {
+        lower_rs1 = lower_rs1 >> 1;
+        lower_rs1 |= sign_bit;
+    }
+
+    cpu->regs[decoded_ins->rd] = sign_extend_u32_to_u64(lower_rs1);
+}
+
+void execute_subw(
+    struct rv64_cpu *_Nonnull cpu, void *_Nonnull *_Nonnull vdecoded_ins_r)
+{
+    assert(cpu);
+    assert(vdecoded_ins_r);
+    assert(*vdecoded_ins_r);
+
+    _cleanup_free_ struct decoded_rv64_base_ins_r *decoded_ins =
+        MOVE(vdecoded_ins_r);
+    uint32_t lower_rs1 = cpu->regs[decoded_ins->rs1];
+    uint32_t lower_rs2 = cpu->regs[decoded_ins->rs2];
+
+    cpu->regs[decoded_ins->rd] = sign_extend_u32_to_u64(lower_rs1 - lower_rs2);
+}

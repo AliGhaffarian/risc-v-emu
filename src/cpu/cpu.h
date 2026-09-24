@@ -18,10 +18,11 @@
 #define IMM_U_SIZE_BITS                                                        \
     IMM_J_SIZE_BITS /** U is a variant of J risc-v unpriviledge 2.3 */
 
-#define SHIFT_SHAMT_BIT_SIZE             6
-#define SHIFT_RIGHT_TYPE_BIT_POS_IN_IMM  10
-#define SHIFTW_SHAMT_BIT_SIZE            5
-#define SHIFTW_RIGHT_TYPE_BIT_POS_IN_IMM SHIFT_RIGHT_TYPE_BIT_POS_IN_IMM
+#define SHIFT_SHAMT_BIT_SIZE              6
+#define SHIFT_RIGHT_TYPE_BIT_POS_IN_IMM   10
+#define SHIFT_RIGHT_TYPE_BIT_POS_IN_FUNC7 5
+#define SHIFTW_SHAMT_BIT_SIZE             5
+#define SHIFTW_RIGHT_TYPE_BIT_POS_IN_IMM  SHIFT_RIGHT_TYPE_BIT_POS_IN_IMM
 
 #define W_BITMASK 0xff'ff'ff'ff
 
@@ -270,4 +271,44 @@ void execute_or(
     struct rv64_cpu *_Nonnull cpu, void *_Nonnull *_Nonnull vdecoded_ins_r);
 
 void execute_xor(
+    struct rv64_cpu *_Nonnull cpu, void *_Nonnull *_Nonnull vdecoded_ins_r);
+
+void execute_jal(
+    struct rv64_cpu *_Nonnull cpu, void *_Nonnull *_Nonnull vdecoded_ins_j);
+
+void execute_jalr(
+    struct rv64_cpu *_Nonnull cpu, void *_Nonnull *_Nonnull vdecoded_ins_i);
+
+void execute_sll(
+    struct rv64_cpu *_Nonnull cpu, void *_Nonnull *_Nonnull vdecoded_ins_r);
+
+void execute_srla(
+    struct rv64_cpu *_Nonnull cpu, void *_Nonnull *_Nonnull vdecoded_ins_r);
+
+void execute_srl(
+    struct rv64_cpu *_Nonnull cpu,
+    struct decoded_rv64_base_ins_r *_Nonnull decoded_ins);
+
+void execute_sra(
+    struct rv64_cpu *_Nonnull cpu,
+    struct decoded_rv64_base_ins_r *_Nonnull decoded_ins);
+
+void execute_addw(
+    struct rv64_cpu *_Nonnull cpu, void *_Nonnull *_Nonnull vdecoded_ins_r);
+
+void execute_sllw(
+    struct rv64_cpu *_Nonnull cpu, void *_Nonnull *_Nonnull vdecoded_ins_r);
+
+void execute_srlaw(
+    struct rv64_cpu *_Nonnull cpu, void *_Nonnull *_Nonnull vdecoded_ins_r);
+
+void execute_srlw(
+    struct rv64_cpu *_Nonnull cpu,
+    struct decoded_rv64_base_ins_r *_Nonnull decoded_ins);
+
+void execute_sraw(
+    struct rv64_cpu *_Nonnull cpu,
+    struct decoded_rv64_base_ins_r *_Nonnull decoded_ins);
+
+void execute_subw(
     struct rv64_cpu *_Nonnull cpu, void *_Nonnull *_Nonnull vdecoded_ins_r);

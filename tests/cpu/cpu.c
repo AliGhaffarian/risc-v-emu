@@ -629,6 +629,251 @@ void test_execute_xor(void)
     TEST_ASSERT_NULL(ins);
 }
 
+void test_execute_jal(void)
+{
+    struct decoded_rv64_base_ins_j *ins = calloc(1, sizeof(*ins));
+    struct rv64_cpu cpu;
+
+    ins->rd  = 5;
+    ins->imm = 0xaa;
+
+    init_rv64_cpu(&cpu);
+
+    cpu.regs[REG_INX_PC] = 0xff;
+    cpu.regs[5]          = 5;
+
+    execute_jal(&cpu, (void **)&ins);
+
+    TEST_ASSERT_EQUAL_HEX64(0xff + 4, cpu.regs[5]);
+    TEST_ASSERT_EQUAL_HEX64(0xaa + 0xff, cpu.regs[REG_INX_PC]);
+    TEST_ASSERT_NULL(ins);
+}
+
+void test_execute_jalr(void)
+{
+    struct decoded_rv64_base_ins_i *ins = calloc(1, sizeof(*ins));
+    struct rv64_cpu cpu;
+
+    ins->rd  = 5;
+    ins->rs1 = 3;
+    ins->imm = 0xaa;
+
+    init_rv64_cpu(&cpu);
+
+    cpu.regs[REG_INX_PC] = 0xff;
+    cpu.regs[3]          = 0x11;
+    cpu.regs[5]          = 5;
+
+    execute_jalr(&cpu, (void **)&ins);
+
+    TEST_ASSERT_EQUAL_HEX64(0xff + 4, cpu.regs[5]);
+    TEST_ASSERT_EQUAL_HEX64(0xaa + 0x10, cpu.regs[REG_INX_PC]);
+    TEST_ASSERT_NULL(ins);
+}
+
+void test_execute_sll(void)
+{
+    struct decoded_rv64_base_ins_r *ins = calloc(1, sizeof(*ins));
+    struct rv64_cpu cpu;
+
+    ins->rd  = 5;
+    ins->rs1 = 7;
+    ins->rs2 = 2;
+
+    uint64_t shamt      = 16;
+    uint64_t shift_type = 0 << 5;
+
+    ins->func7 = shift_type;
+
+    init_rv64_cpu(&cpu);
+
+    cpu.regs[2] = shamt;
+    cpu.regs[7] = 0x80'aa'bb'cc'8d'ee'ff'11;
+    cpu.regs[5] = 2;
+
+    execute_sll(&cpu, (void **)&ins);
+
+    TEST_ASSERT_EQUAL_HEX64(0xbb'cc'8d'ee'ff'11'00'00, cpu.regs[5]);
+    TEST_ASSERT_NULL(ins);
+}
+
+void test_execute_srla(void)
+{
+    // arithmetic
+    {
+        struct decoded_rv64_base_ins_r *ins = calloc(1, sizeof(*ins));
+        struct rv64_cpu cpu;
+
+        ins->rd  = 5;
+        ins->rs1 = 7;
+        ins->rs2 = 2;
+
+        uint64_t shamt      = 32;
+        uint64_t shift_type = 1 << 5;
+
+        ins->func7 = shift_type;
+
+        init_rv64_cpu(&cpu);
+
+        cpu.regs[2] = shamt;
+        cpu.regs[7] = 0x80'aa'bb'cc'dd'ee'ff'11;
+        cpu.regs[5] = 2;
+
+        execute_srla(&cpu, (void **)&ins);
+
+        TEST_ASSERT_EQUAL_HEX64(0xff'ff'ff'ff'80'aa'bb'cc, cpu.regs[5]);
+        TEST_ASSERT_NULL(ins);
+    }
+
+    // logical
+    {
+        struct decoded_rv64_base_ins_r *ins = calloc(1, sizeof(*ins));
+        struct rv64_cpu cpu;
+
+        ins->rd  = 5;
+        ins->rs1 = 7;
+        ins->rs2 = 2;
+
+        uint64_t shamt      = 32;
+        uint64_t shift_type = 0 << 5;
+
+        ins->func7 = shift_type;
+
+        init_rv64_cpu(&cpu);
+
+        cpu.regs[2] = shamt;
+        cpu.regs[7] = 0x80'aa'bb'cc'dd'ee'ff'11;
+        cpu.regs[5] = 2;
+
+        execute_srla(&cpu, (void **)&ins);
+
+        TEST_ASSERT_EQUAL_HEX64(0x00'00'00'00'80'aa'bb'cc, cpu.regs[5]);
+        TEST_ASSERT_NULL(ins);
+    }
+}
+
+void test_execute_addw(void)
+{
+    struct decoded_rv64_base_ins_r *ins = calloc(1, sizeof(*ins));
+    struct rv64_cpu cpu;
+
+    ins->rd  = 5;
+    ins->rs1 = 7;
+    ins->rs2 = 2;
+
+    init_rv64_cpu(&cpu);
+
+    cpu.regs[2] = -2;
+    cpu.regs[7] = 1;
+    cpu.regs[5] = 2;
+
+    execute_addw(&cpu, (void **)&ins);
+
+    TEST_ASSERT_EQUAL_INT64(0xff'ff'ff'ff'ff'ff'ff'ff, cpu.regs[5]);
+    TEST_ASSERT_NULL(ins);
+}
+
+void test_execute_sllw(void)
+{
+    struct decoded_rv64_base_ins_r *ins = calloc(1, sizeof(*ins));
+    struct rv64_cpu cpu;
+
+    ins->rd  = 5;
+    ins->rs1 = 7;
+    ins->rs2 = 2;
+
+    uint64_t shamt      = 16;
+    uint64_t shift_type = 0 << 5;
+
+    ins->func7 = shift_type;
+
+    init_rv64_cpu(&cpu);
+
+    cpu.regs[2] = shamt;
+    cpu.regs[7] = 0x80'aa'bb'cc'8d'ee'ff'11;
+    cpu.regs[5] = 2;
+
+    execute_sllw(&cpu, (void **)&ins);
+
+    TEST_ASSERT_EQUAL_HEX64(0xff'ff'ff'ff'ff'11'00'00, cpu.regs[5]);
+    TEST_ASSERT_NULL(ins);
+}
+
+void test_execute_srlaw(void)
+{
+    // arithmetic
+    {
+        struct decoded_rv64_base_ins_r *ins = calloc(1, sizeof(*ins));
+        struct rv64_cpu cpu;
+
+        ins->rd  = 5;
+        ins->rs1 = 7;
+        ins->rs2 = 2;
+
+        uint64_t shamt      = 16;
+        uint64_t shift_type = 1 << 5;
+
+        ins->func7 = shift_type;
+
+        init_rv64_cpu(&cpu);
+
+        cpu.regs[2] = shamt;
+        cpu.regs[7] = 0x80'aa'bb'cc'8d'ee'ff'11;
+        cpu.regs[5] = 2;
+
+        execute_srlaw(&cpu, (void **)&ins);
+
+        TEST_ASSERT_EQUAL_HEX64(0xff'ff'ff'ff'ff'ff'8d'ee, cpu.regs[5]);
+        TEST_ASSERT_NULL(ins);
+    }
+
+    // logical
+    {
+        struct decoded_rv64_base_ins_r *ins = calloc(1, sizeof(*ins));
+        struct rv64_cpu cpu;
+
+        ins->rd  = 5;
+        ins->rs1 = 7;
+        ins->rs2 = 2;
+
+        uint64_t shamt      = 16;
+        uint64_t shift_type = 0 << 5;
+
+        ins->func7 = shift_type;
+
+        init_rv64_cpu(&cpu);
+
+        cpu.regs[2] = shamt;
+        cpu.regs[7] = 0x80'aa'bb'cc'8d'ee'ff'11;
+        cpu.regs[5] = 2;
+
+        execute_srlaw(&cpu, (void **)&ins);
+
+        TEST_ASSERT_EQUAL_HEX64(0x00'00'00'00'00'00'8d'ee, cpu.regs[5]);
+        TEST_ASSERT_NULL(ins);
+    }
+}
+
+void test_execute_subw(void)
+{
+    struct decoded_rv64_base_ins_r *ins = calloc(1, sizeof(*ins));
+    struct rv64_cpu cpu;
+
+    ins->rd  = 5;
+    ins->rs1 = 7;
+    ins->rs2 = 8;
+
+    init_rv64_cpu(&cpu);
+
+    cpu.regs[7] = 0xaa'bb'cc'dd'ff'aa'bb'fa;
+    cpu.regs[8] = 0xcc'ee'ff'aa'00'00'00'f1;
+    cpu.regs[5] = 2;
+
+    execute_subw(&cpu, (void **)&ins);
+
+    TEST_ASSERT_EQUAL_HEX64(0xff'ff'ff'ff'ff'aa'bb'09, cpu.regs[5]);
+    TEST_ASSERT_NULL(ins);
+}
 int main(void)
 {
     UNITY_BEGIN();
@@ -663,6 +908,14 @@ int main(void)
     RUN_TEST(test_execute_and);
     RUN_TEST(test_execute_or);
     RUN_TEST(test_execute_xor);
+    RUN_TEST(test_execute_jal);
+    RUN_TEST(test_execute_jalr);
+    RUN_TEST(test_execute_sll);
+    RUN_TEST(test_execute_srla);
+    RUN_TEST(test_execute_addw);
+    RUN_TEST(test_execute_sllw);
+    RUN_TEST(test_execute_srlaw);
+    RUN_TEST(test_execute_subw);
     return UNITY_END();
 }
 
