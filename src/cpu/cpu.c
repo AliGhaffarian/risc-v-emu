@@ -282,7 +282,7 @@ int decode_ins_s(
     (*ret_decoded)->rs1    = decode_rs1(ins);
     (*ret_decoded)->rs2    = decode_rs2(ins);
     (*ret_decoded)->func3  = decode_func3(ins);
-    (*ret_decoded)->imm    = decode_imm_i(ins);
+    (*ret_decoded)->imm    = decode_imm_s(ins);
 
     return 0;
 }
