@@ -142,7 +142,7 @@ struct cpu_opt {
 
 struct rv64_cpu {
     uint64_t *_Nonnull regs;
-    void *_Nonnull mem;
+    uint8_t *_Nonnull mem;
     struct cpu_opt opt;
 };
 
