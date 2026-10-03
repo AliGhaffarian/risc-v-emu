@@ -1,4 +1,5 @@
 #include "cpu.h"
+#include "generated_aliases.h"
 #include "unity.h"
 #include <stdlib.h>
 
@@ -1229,6 +1230,34 @@ void test_fetch()
     }
 }
 
+void test_execution_handlers_table()
+{
+    {
+        //add
+        struct decoded_rv64_base_ins_r *ins = calloc(1, sizeof(*ins));
+        struct rv64_cpu cpu                 = {0};
+        init_rv64_cpu(&cpu, NULL);
+
+        ins->func3  = ADD_FUNC3;
+        ins->opcode = ADD_FUNC7;
+        ins->opcode = OP;
+        ins->rd     = 3;
+        ins->rs1    = 1;
+        ins->rs2    = 2;
+
+        cpu.regs[ins->rs1] = 2;
+        cpu.regs[ins->rs2] = 10;
+        cpu.regs[ins->rd]  = -1;
+
+        execution_handlers[ins->opcode][ins->func3][ins->func7](
+            &cpu, (void **)&ins);
+
+        TEST_ASSERT_EQUAL(12, cpu.regs[3]);
+        TEST_ASSERT_NULL(ins);
+        TEST_ASSERT_EQUAL(0, cpu.i_flags.pc_updated);
+    }
+}
+
 int main(void)
 {
     UNITY_BEGIN();
@@ -1281,6 +1310,8 @@ int main(void)
 
     RUN_TEST(test_read_mem_rw);
     RUN_TEST(test_fetch);
+
+    RUN_TEST(test_execution_handlers_table);
     return UNITY_END();
 }
 

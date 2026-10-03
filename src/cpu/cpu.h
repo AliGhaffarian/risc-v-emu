@@ -154,7 +154,6 @@ struct rv64_cpu {
 void free_rv64_cpu(struct rv64_cpu *_Nonnull cpu);
 #define _cleanup_free_rv64_cpu_ __attribute__((__cleanup__(free_rv64_cpu)))
 
-// TODO:
 // Rules for execution handlers:
 //  must steal decoded_ins
 extern void (*_Nonnull execution_handlers[OPCODE_MAX][FUNC3_MAX][FUNC7_MAX])(
@@ -485,3 +484,10 @@ int fetch(struct rv64_cpu *_Nonnull cpu, rv64_instruction_t *_Nonnull ret_ins);
  * called at the end of the cpu loop, pc is updated, nop, otherwise advance pc
  */
 void advance_pc_or_update_i_flags(struct rv64_cpu *_Nonnull cpu);
+
+void register_execution_handler(
+    uint8_t opcode,
+    const int *_Nullable func7,
+    const int *_Nullable func3,
+    void (*_Nonnull handler)(
+        struct rv64_cpu *_Nonnull, void *_Nonnull *_Nonnull));
