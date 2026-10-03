@@ -167,7 +167,7 @@ void test_execute_addi(void)
     ins->rs1 = 7;
     ins->imm = 0xff;
 
-    init_rv64_cpu(&cpu);
+    init_rv64_cpu(&cpu, NULL);
 
     cpu.regs[7] = 5;
     cpu.regs[5] = 2;
@@ -187,7 +187,7 @@ void test_execute_slti(void)
     ins->rs1 = 7;
     ins->imm = ((uint64_t)-1);
 
-    init_rv64_cpu(&cpu);
+    init_rv64_cpu(&cpu, NULL);
 
     cpu.regs[7] = 5;
     cpu.regs[5] = 2;
@@ -206,7 +206,7 @@ void test_execute_sltiu(void)
     ins->rs1 = 7;
     ins->imm = ((uint64_t)-1);
 
-    init_rv64_cpu(&cpu);
+    init_rv64_cpu(&cpu, NULL);
 
     cpu.regs[7] = 5;
     cpu.regs[5] = 2;
@@ -226,7 +226,7 @@ void test_execute_andi(void)
     ins->rs1 = 7;
     ins->imm = 0xff;
 
-    init_rv64_cpu(&cpu);
+    init_rv64_cpu(&cpu, NULL);
 
     cpu.regs[7] = 5;
     cpu.regs[5] = 2;
@@ -246,7 +246,7 @@ void test_execute_ori(void)
     ins->rs1 = 7;
     ins->imm = 0xff;
 
-    init_rv64_cpu(&cpu);
+    init_rv64_cpu(&cpu, NULL);
 
     cpu.regs[7] = 5;
     cpu.regs[5] = 2;
@@ -266,7 +266,7 @@ void test_execute_xori(void)
     ins->rs1 = 7;
     ins->imm = 0xff;
 
-    init_rv64_cpu(&cpu);
+    init_rv64_cpu(&cpu, NULL);
 
     cpu.regs[7] = 5;
     cpu.regs[5] = 2;
@@ -292,7 +292,7 @@ void test_execute_srlai(void)
 
         ins->imm = shamt + shift_type;
 
-        init_rv64_cpu(&cpu);
+        init_rv64_cpu(&cpu, NULL);
 
         cpu.regs[7] = 0x80'aa'bb'cc'dd'ee'ff'11;
         cpu.regs[5] = 2;
@@ -316,7 +316,7 @@ void test_execute_srlai(void)
 
         ins->imm = shamt + shift_type;
 
-        init_rv64_cpu(&cpu);
+        init_rv64_cpu(&cpu, NULL);
 
         cpu.regs[7] = 0x80'aa'bb'cc'dd'ee'ff'11;
         cpu.regs[5] = 2;
@@ -336,7 +336,7 @@ void test_execute_lui(void)
     ins->rd  = 5;
     ins->imm = 0xff'00'0;
 
-    init_rv64_cpu(&cpu);
+    init_rv64_cpu(&cpu, NULL);
 
     cpu.regs[5]          = -1;
     cpu.regs[REG_INX_PC] = 0xff'00;
@@ -355,7 +355,7 @@ void test_execute_auipc(void)
     ins->rd  = 5;
     ins->imm = 0xff'00'0;
 
-    init_rv64_cpu(&cpu);
+    init_rv64_cpu(&cpu, NULL);
 
     cpu.regs[REG_INX_PC] = 0x0'ff'0;
     cpu.regs[5]          = -1;
@@ -375,7 +375,7 @@ void test_execute_addiw(void)
     ins->rs1 = 7;
     ins->imm = -2;
 
-    init_rv64_cpu(&cpu);
+    init_rv64_cpu(&cpu, NULL);
 
     cpu.regs[7] = 1;
     cpu.regs[5] = 2;
@@ -399,7 +399,7 @@ void test_execute_slli(void)
 
     ins->imm = shamt + shift_type;
 
-    init_rv64_cpu(&cpu);
+    init_rv64_cpu(&cpu, NULL);
 
     cpu.regs[7] = 0x80'aa'bb'cc'8d'ee'ff'11;
     cpu.regs[5] = 2;
@@ -423,7 +423,7 @@ void test_execute_slliw(void)
 
     ins->imm = shamt + shift_type;
 
-    init_rv64_cpu(&cpu);
+    init_rv64_cpu(&cpu, NULL);
 
     cpu.regs[7] = 0x80'aa'bb'cc'8d'ee'ff'11;
     cpu.regs[5] = 2;
@@ -449,7 +449,7 @@ void test_execute_srlaiw(void)
 
         ins->imm = shamt + shift_type;
 
-        init_rv64_cpu(&cpu);
+        init_rv64_cpu(&cpu, NULL);
 
         cpu.regs[7] = 0x80'aa'bb'cc'8d'ee'ff'11;
         cpu.regs[5] = 2;
@@ -473,7 +473,7 @@ void test_execute_srlaiw(void)
 
         ins->imm = shamt + shift_type;
 
-        init_rv64_cpu(&cpu);
+        init_rv64_cpu(&cpu, NULL);
 
         cpu.regs[7] = 0x80'aa'bb'cc'8d'ee'ff'11;
         cpu.regs[5] = 2;
@@ -494,7 +494,7 @@ void test_execute_add(void)
     ins->rs1 = 7;
     ins->rs2 = 8;
 
-    init_rv64_cpu(&cpu);
+    init_rv64_cpu(&cpu, NULL);
 
     cpu.regs[7] = 5;
     cpu.regs[8] = 50;
@@ -515,7 +515,7 @@ void test_execute_sub(void)
     ins->rs1 = 7;
     ins->rs2 = 8;
 
-    init_rv64_cpu(&cpu);
+    init_rv64_cpu(&cpu, NULL);
 
     cpu.regs[7] = 50;
     cpu.regs[8] = 5;
@@ -536,7 +536,7 @@ void test_execute_slt(void)
     ins->rs1 = 7;
     ins->rs2 = 3;
 
-    init_rv64_cpu(&cpu);
+    init_rv64_cpu(&cpu, NULL);
 
     cpu.regs[7] = 5;
     cpu.regs[3] = -1;
@@ -556,7 +556,7 @@ void test_execute_sltu(void)
     ins->rs1 = 7;
     ins->rs2 = 3;
 
-    init_rv64_cpu(&cpu);
+    init_rv64_cpu(&cpu, NULL);
 
     cpu.regs[7] = 5;
     cpu.regs[3] = -1;
@@ -577,7 +577,7 @@ void test_execute_and(void)
     ins->rs1 = 7;
     ins->rd  = 5;
 
-    init_rv64_cpu(&cpu);
+    init_rv64_cpu(&cpu, NULL);
     cpu.regs[3] = 0xff;
     cpu.regs[7] = 5;
     cpu.regs[5] = 2;
@@ -597,7 +597,7 @@ void test_execute_or(void)
     ins->rs1 = 7;
     ins->rs2 = 3;
 
-    init_rv64_cpu(&cpu);
+    init_rv64_cpu(&cpu, NULL);
     cpu.regs[3] = 0xff;
     cpu.regs[7] = 5;
     cpu.regs[5] = 2;
@@ -617,7 +617,7 @@ void test_execute_xor(void)
     ins->rs1 = 7;
     ins->rs2 = 3;
 
-    init_rv64_cpu(&cpu);
+    init_rv64_cpu(&cpu, NULL);
 
     cpu.regs[3] = 0xff;
     cpu.regs[7] = 5;
@@ -637,7 +637,7 @@ void test_execute_jal(void)
     ins->rd  = 5;
     ins->imm = 0xaa;
 
-    init_rv64_cpu(&cpu);
+    init_rv64_cpu(&cpu, NULL);
 
     cpu.regs[REG_INX_PC] = 0xff;
     cpu.regs[5]          = 5;
@@ -658,7 +658,7 @@ void test_execute_jalr(void)
     ins->rs1 = 3;
     ins->imm = 0xaa;
 
-    init_rv64_cpu(&cpu);
+    init_rv64_cpu(&cpu, NULL);
 
     cpu.regs[REG_INX_PC] = 0xff;
     cpu.regs[3]          = 0x11;
@@ -685,7 +685,7 @@ void test_execute_sll(void)
 
     ins->func7 = shift_type;
 
-    init_rv64_cpu(&cpu);
+    init_rv64_cpu(&cpu, NULL);
 
     cpu.regs[2] = shamt;
     cpu.regs[7] = 0x80'aa'bb'cc'8d'ee'ff'11;
@@ -713,7 +713,7 @@ void test_execute_srla(void)
 
         ins->func7 = shift_type;
 
-        init_rv64_cpu(&cpu);
+        init_rv64_cpu(&cpu, NULL);
 
         cpu.regs[2] = shamt;
         cpu.regs[7] = 0x80'aa'bb'cc'dd'ee'ff'11;
@@ -739,7 +739,7 @@ void test_execute_srla(void)
 
         ins->func7 = shift_type;
 
-        init_rv64_cpu(&cpu);
+        init_rv64_cpu(&cpu, NULL);
 
         cpu.regs[2] = shamt;
         cpu.regs[7] = 0x80'aa'bb'cc'dd'ee'ff'11;
@@ -761,7 +761,7 @@ void test_execute_addw(void)
     ins->rs1 = 7;
     ins->rs2 = 2;
 
-    init_rv64_cpu(&cpu);
+    init_rv64_cpu(&cpu, NULL);
 
     cpu.regs[2] = -2;
     cpu.regs[7] = 1;
@@ -787,7 +787,7 @@ void test_execute_sllw(void)
 
     ins->func7 = shift_type;
 
-    init_rv64_cpu(&cpu);
+    init_rv64_cpu(&cpu, NULL);
 
     cpu.regs[2] = shamt;
     cpu.regs[7] = 0x80'aa'bb'cc'8d'ee'ff'11;
@@ -815,7 +815,7 @@ void test_execute_srlaw(void)
 
         ins->func7 = shift_type;
 
-        init_rv64_cpu(&cpu);
+        init_rv64_cpu(&cpu, NULL);
 
         cpu.regs[2] = shamt;
         cpu.regs[7] = 0x80'aa'bb'cc'8d'ee'ff'11;
@@ -841,7 +841,7 @@ void test_execute_srlaw(void)
 
         ins->func7 = shift_type;
 
-        init_rv64_cpu(&cpu);
+        init_rv64_cpu(&cpu, NULL);
 
         cpu.regs[2] = shamt;
         cpu.regs[7] = 0x80'aa'bb'cc'8d'ee'ff'11;
@@ -863,7 +863,7 @@ void test_execute_subw(void)
     ins->rs1 = 7;
     ins->rs2 = 8;
 
-    init_rv64_cpu(&cpu);
+    init_rv64_cpu(&cpu, NULL);
 
     cpu.regs[7] = 0xaa'bb'cc'dd'ff'aa'bb'fa;
     cpu.regs[8] = 0xcc'ee'ff'aa'00'00'00'f1;
@@ -886,7 +886,7 @@ void test_execute_beq(void)
         ins->rs2 = 8;
         ins->imm = 0xf'00'00;
 
-        init_rv64_cpu(&cpu);
+        init_rv64_cpu(&cpu, NULL);
 
         cpu.regs[REG_INX_PC] = 0xff'ff;
         cpu.regs[7]          = 1;
@@ -907,7 +907,7 @@ void test_execute_beq(void)
         ins->rs2 = 8;
         ins->imm = 0xf'00'00;
 
-        init_rv64_cpu(&cpu);
+        init_rv64_cpu(&cpu, NULL);
 
         cpu.regs[REG_INX_PC] = 0xff'ff;
         cpu.regs[7]          = 1;
@@ -931,7 +931,7 @@ void test_execute_bne(void)
         ins->rs2 = 8;
         ins->imm = 0xf'00'00;
 
-        init_rv64_cpu(&cpu);
+        init_rv64_cpu(&cpu, NULL);
 
         cpu.regs[REG_INX_PC] = 0xff'ff;
         cpu.regs[7]          = 1;
@@ -952,7 +952,7 @@ void test_execute_bne(void)
         ins->rs2 = 8;
         ins->imm = 0xf'00'00;
 
-        init_rv64_cpu(&cpu);
+        init_rv64_cpu(&cpu, NULL);
 
         cpu.regs[REG_INX_PC] = 0xff'ff;
         cpu.regs[7]          = 1;
@@ -976,7 +976,7 @@ void test_execute_blt(void)
         ins->rs2 = 8;
         ins->imm = 0xf'00'00;
 
-        init_rv64_cpu(&cpu);
+        init_rv64_cpu(&cpu, NULL);
 
         cpu.regs[REG_INX_PC] = 0xff'ff;
         cpu.regs[7]          = -1;
@@ -997,7 +997,7 @@ void test_execute_blt(void)
         ins->rs2 = 8;
         ins->imm = 0xf'00'00;
 
-        init_rv64_cpu(&cpu);
+        init_rv64_cpu(&cpu, NULL);
 
         cpu.regs[REG_INX_PC] = 0xff'ff;
         cpu.regs[7]          = 1;
@@ -1021,7 +1021,7 @@ void test_execute_bltu(void)
         ins->rs2 = 8;
         ins->imm = 0xf'00'00;
 
-        init_rv64_cpu(&cpu);
+        init_rv64_cpu(&cpu, NULL);
 
         cpu.regs[REG_INX_PC] = 0xff'ff;
         cpu.regs[7]          = 1;
@@ -1042,7 +1042,7 @@ void test_execute_bltu(void)
         ins->rs2 = 8;
         ins->imm = 0xf'00'00;
 
-        init_rv64_cpu(&cpu);
+        init_rv64_cpu(&cpu, NULL);
 
         cpu.regs[REG_INX_PC] = 0xff'ff;
         cpu.regs[7]          = -1;
@@ -1066,7 +1066,7 @@ void test_execute_bge(void)
         ins->rs2 = 8;
         ins->imm = 0xf'00'00;
 
-        init_rv64_cpu(&cpu);
+        init_rv64_cpu(&cpu, NULL);
 
         cpu.regs[REG_INX_PC] = 0xff'ff;
         cpu.regs[7]          = 1;
@@ -1087,7 +1087,7 @@ void test_execute_bge(void)
         ins->rs2 = 8;
         ins->imm = 0xf'00'00;
 
-        init_rv64_cpu(&cpu);
+        init_rv64_cpu(&cpu, NULL);
 
         cpu.regs[REG_INX_PC] = 0xff'ff;
         cpu.regs[7]          = -1;
@@ -1111,7 +1111,7 @@ void test_execute_bgeu(void)
         ins->rs2 = 8;
         ins->imm = 0xf'00'00;
 
-        init_rv64_cpu(&cpu);
+        init_rv64_cpu(&cpu, NULL);
 
         cpu.regs[REG_INX_PC] = 0xff'ff;
         cpu.regs[7]          = -1;
@@ -1132,7 +1132,7 @@ void test_execute_bgeu(void)
         ins->rs2 = 8;
         ins->imm = 0xf'00'00;
 
-        init_rv64_cpu(&cpu);
+        init_rv64_cpu(&cpu, NULL);
 
         cpu.regs[REG_INX_PC] = 0xff'ff;
         cpu.regs[7]          = 1;

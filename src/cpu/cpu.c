@@ -368,14 +368,23 @@ void free_rv64_cpu(struct rv64_cpu *_Nonnull cpu)
     cpu->mem = NULL;
 }
 
-int init_rv64_cpu(struct rv64_cpu *_Nonnull cpu)
+int init_rv64_cpu(struct rv64_cpu *_Nonnull cpu, struct cpu_opt *_Nullable opt)
 {
-    cpu->regs = calloc(1, sizeof(uint64_t) * BASE_REGS_NUM);
+    assert(cpu);
+
+    cpu->opt.mem_size = BASE_MEM_SIZE;
+    cpu->opt.regs     = BASE_REGS_NUM;
+
+    if(opt) {
+        cpu->opt = *opt;
+    }
+
+    cpu->regs = calloc(1, sizeof(uint64_t) * cpu->opt.regs);
     if(!cpu->regs) {
         return ENOMEM;
     }
 
-    cpu->mem = calloc(1, BASE_MEM_SIZE);
+    cpu->mem = calloc(1, cpu->opt.mem_size);
     if(!cpu->mem) {
         return ENOMEM;
     }

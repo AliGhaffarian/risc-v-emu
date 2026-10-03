@@ -98,10 +98,52 @@ enum RV64_OPCODE {
 
 #define BASE_REGS_NUM (32 + 1) // 32 x regs + pc
 #define BASE_MEM_SIZE 1024
-#define REG_INX_PC    32
+
+enum REG_INX_ALIAS {
+    REG_INX_ZERO = 0,
+    REG_INX_RA,
+    REG_INX_SP,
+    REG_INX_GP,
+    REG_INX_TP,
+    REG_INX_T0,
+    REG_INX_T1,
+    REG_INX_T2,
+    REG_INX_S0,
+    REG_INX_S1,
+    REG_INX_A0,
+    REG_INX_A1,
+    REG_INX_A2,
+    REG_INX_A3,
+    REG_INX_A4,
+    REG_INX_A5,
+    REG_INX_A6,
+    REG_INX_A7,
+    REG_INX_S2,
+    REG_INX_S3,
+    REG_INX_S4,
+    REG_INX_S5,
+    REG_INX_S6,
+    REG_INX_S7,
+    REG_INX_S8,
+    REG_INX_S9,
+    REG_INX_S10,
+    REG_INX_S11,
+    REG_INX_T3,
+    REG_INX_T4,
+    REG_INX_T5,
+    REG_INX_T6,
+};
+#define REG_INX_PC 32
+
+struct cpu_opt {
+    uint64_t mem_size;
+    uint64_t regs;
+};
+
 struct rv64_cpu {
     uint64_t *_Nonnull regs;
     void *_Nonnull mem;
+    struct cpu_opt opt;
 };
 
 void free_rv64_cpu(struct rv64_cpu *_Nonnull cpu);
@@ -113,7 +155,7 @@ void free_rv64_cpu(struct rv64_cpu *_Nonnull cpu);
 extern void (*_Nonnull execution_handlers[OPCODE_MAX][FUNC3_MAX][FUNC7_MAX])(
     struct rv64_cpu *_Nonnull cpu, void *_Nonnull *_Nonnull vdecoded_ins);
 
-int init_rv64_cpu(struct rv64_cpu *_Nonnull cpu);
+int init_rv64_cpu(struct rv64_cpu *_Nonnull cpu, struct cpu_opt *_Nullable opt);
 
 struct decoded_rv64_base_ins_r {
     uint7b_t opcode;
