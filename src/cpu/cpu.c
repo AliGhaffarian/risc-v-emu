@@ -389,6 +389,8 @@ int init_rv64_cpu(struct rv64_cpu *_Nonnull cpu, struct cpu_opt *_Nullable opt)
         return ENOMEM;
     }
 
+    cpu->i_flags.pc_updated = 0;
+
     return 0;
 }
 
@@ -755,6 +757,7 @@ void execute_jal(
 
     cpu->regs[decoded_ins->rd] = cpu->regs[REG_INX_PC] + 4;
     cpu->regs[REG_INX_PC] += decoded_ins->imm;
+    cpu->i_flags.pc_updated = 1;
 }
 
 void execute_jalr(
@@ -773,6 +776,8 @@ void execute_jalr(
 
     cpu->regs[REG_INX_PC] >>= 1;
     cpu->regs[REG_INX_PC] <<= 1;
+
+    cpu->i_flags.pc_updated = 1;
 }
 
 void execute_sll(
@@ -947,6 +952,7 @@ void execute_beq(
 
     if(cpu->regs[decoded_ins->rs1] == cpu->regs[decoded_ins->rs2]) {
         cpu->regs[REG_INX_PC] += decoded_ins->imm;
+        cpu->i_flags.pc_updated = 1;
     }
 }
 
@@ -962,6 +968,7 @@ void execute_bne(
 
     if(cpu->regs[decoded_ins->rs1] != cpu->regs[decoded_ins->rs2]) {
         cpu->regs[REG_INX_PC] += decoded_ins->imm;
+        cpu->i_flags.pc_updated = 1;
     }
 }
 
@@ -978,6 +985,7 @@ void execute_blt(
     if((int64_t)cpu->regs[decoded_ins->rs1] <
        (int64_t)cpu->regs[decoded_ins->rs2]) {
         cpu->regs[REG_INX_PC] += decoded_ins->imm;
+        cpu->i_flags.pc_updated = 1;
     }
 }
 
@@ -993,6 +1001,7 @@ void execute_bltu(
 
     if(cpu->regs[decoded_ins->rs1] < cpu->regs[decoded_ins->rs2]) {
         cpu->regs[REG_INX_PC] += decoded_ins->imm;
+        cpu->i_flags.pc_updated = 1;
     }
 }
 
@@ -1009,6 +1018,7 @@ void execute_bge(
     if((int64_t)cpu->regs[decoded_ins->rs1] >=
        (int64_t)cpu->regs[decoded_ins->rs2]) {
         cpu->regs[REG_INX_PC] += decoded_ins->imm;
+        cpu->i_flags.pc_updated = 1;
     }
 }
 void execute_bgeu(
@@ -1023,6 +1033,7 @@ void execute_bgeu(
 
     if(cpu->regs[decoded_ins->rs1] >= cpu->regs[decoded_ins->rs2]) {
         cpu->regs[REG_INX_PC] += decoded_ins->imm;
+        cpu->i_flags.pc_updated = 1;
     }
 }
 
@@ -1116,4 +1127,22 @@ int write_mem32(struct rv64_cpu *_Nonnull cpu, uint64_t address, uint32_t write)
 int write_mem64(struct rv64_cpu *_Nonnull cpu, uint64_t address, uint64_t write)
 {
     return INTERNAL_MEM_WRITE_UINT_TYPED(cpu, address, write);
+}
+
+int fetch(struct rv64_cpu *_Nonnull cpu, rv64_instruction_t *_Nonnull ret_ins)
+{
+    int err = 0;
+
+    err = read_mem32(cpu, cpu->regs[REG_INX_PC], ret_ins);
+
+    return err;
+}
+
+void advance_pc_or_update_i_flags(struct rv64_cpu *_Nonnull cpu)
+{
+    if(cpu->i_flags.pc_updated) {
+        cpu->i_flags.pc_updated = 0;
+        return;
+    }
+    cpu->regs[REG_INX_PC] += sizeof(rv64_instruction_t);
 }

@@ -646,6 +646,7 @@ void test_execute_jal(void)
 
     TEST_ASSERT_EQUAL_HEX64(0xff + 4, cpu.regs[5]);
     TEST_ASSERT_EQUAL_HEX64(0xaa + 0xff, cpu.regs[REG_INX_PC]);
+    TEST_ASSERT_EQUAL(1, cpu.i_flags.pc_updated);
     TEST_ASSERT_NULL(ins);
 }
 
@@ -668,6 +669,7 @@ void test_execute_jalr(void)
 
     TEST_ASSERT_EQUAL_HEX64(0xff + 4, cpu.regs[5]);
     TEST_ASSERT_EQUAL_HEX64(0xaa + 0x10, cpu.regs[REG_INX_PC]);
+    TEST_ASSERT_EQUAL(1, cpu.i_flags.pc_updated);
     TEST_ASSERT_NULL(ins);
 }
 
@@ -895,6 +897,7 @@ void test_execute_beq(void)
         execute_beq(&cpu, (void **)&ins);
 
         TEST_ASSERT_EQUAL_HEX64(0x0f'ff'ff, cpu.regs[REG_INX_PC]);
+        TEST_ASSERT_EQUAL(1, cpu.i_flags.pc_updated);
         TEST_ASSERT_NULL(ins);
     }
 
@@ -916,6 +919,7 @@ void test_execute_beq(void)
         execute_beq(&cpu, (void **)&ins);
 
         TEST_ASSERT_EQUAL_HEX64(0x00'ff'ff, cpu.regs[REG_INX_PC]);
+        TEST_ASSERT_EQUAL(0, cpu.i_flags.pc_updated);
         TEST_ASSERT_NULL(ins);
     }
 }
@@ -940,6 +944,7 @@ void test_execute_bne(void)
         execute_bne(&cpu, (void **)&ins);
 
         TEST_ASSERT_EQUAL_HEX64(0x0f'ff'ff, cpu.regs[REG_INX_PC]);
+        TEST_ASSERT_EQUAL(1, cpu.i_flags.pc_updated);
         TEST_ASSERT_NULL(ins);
     }
 
@@ -961,6 +966,7 @@ void test_execute_bne(void)
         execute_bne(&cpu, (void **)&ins);
 
         TEST_ASSERT_EQUAL_HEX64(0x00'ff'ff, cpu.regs[REG_INX_PC]);
+        TEST_ASSERT_EQUAL(0, cpu.i_flags.pc_updated);
         TEST_ASSERT_NULL(ins);
     }
 }
@@ -985,6 +991,7 @@ void test_execute_blt(void)
         execute_blt(&cpu, (void **)&ins);
 
         TEST_ASSERT_EQUAL_HEX64(0x0f'ff'ff, cpu.regs[REG_INX_PC]);
+        TEST_ASSERT_EQUAL(1, cpu.i_flags.pc_updated);
         TEST_ASSERT_NULL(ins);
     }
 
@@ -1006,6 +1013,7 @@ void test_execute_blt(void)
         execute_blt(&cpu, (void **)&ins);
 
         TEST_ASSERT_EQUAL_HEX64(0x00'ff'ff, cpu.regs[REG_INX_PC]);
+        TEST_ASSERT_EQUAL(0, cpu.i_flags.pc_updated);
         TEST_ASSERT_NULL(ins);
     }
 }
@@ -1030,6 +1038,7 @@ void test_execute_bltu(void)
         execute_bltu(&cpu, (void **)&ins);
 
         TEST_ASSERT_EQUAL_HEX64(0x0f'ff'ff, cpu.regs[REG_INX_PC]);
+        TEST_ASSERT_EQUAL(1, cpu.i_flags.pc_updated);
         TEST_ASSERT_NULL(ins);
     }
 
@@ -1051,6 +1060,7 @@ void test_execute_bltu(void)
         execute_bltu(&cpu, (void **)&ins);
 
         TEST_ASSERT_EQUAL_HEX64(0x00'ff'ff, cpu.regs[REG_INX_PC]);
+        TEST_ASSERT_EQUAL(0, cpu.i_flags.pc_updated);
         TEST_ASSERT_NULL(ins);
     }
 }
@@ -1075,6 +1085,7 @@ void test_execute_bge(void)
         execute_bge(&cpu, (void **)&ins);
 
         TEST_ASSERT_EQUAL_HEX64(0x0f'ff'ff, cpu.regs[REG_INX_PC]);
+        TEST_ASSERT_EQUAL(1, cpu.i_flags.pc_updated);
         TEST_ASSERT_NULL(ins);
     }
 
@@ -1096,6 +1107,7 @@ void test_execute_bge(void)
         execute_bge(&cpu, (void **)&ins);
 
         TEST_ASSERT_EQUAL_HEX64(0x00'ff'ff, cpu.regs[REG_INX_PC]);
+        TEST_ASSERT_EQUAL(0, cpu.i_flags.pc_updated);
         TEST_ASSERT_NULL(ins);
     }
 }
@@ -1120,6 +1132,7 @@ void test_execute_bgeu(void)
         execute_bgeu(&cpu, (void **)&ins);
 
         TEST_ASSERT_EQUAL_HEX64(0x0f'ff'ff, cpu.regs[REG_INX_PC]);
+        TEST_ASSERT_EQUAL(1, cpu.i_flags.pc_updated);
         TEST_ASSERT_NULL(ins);
     }
 
@@ -1141,6 +1154,7 @@ void test_execute_bgeu(void)
         execute_bgeu(&cpu, (void **)&ins);
 
         TEST_ASSERT_EQUAL_HEX64(0x00'ff'ff, cpu.regs[REG_INX_PC]);
+        TEST_ASSERT_EQUAL(0, cpu.i_flags.pc_updated);
         TEST_ASSERT_NULL(ins);
     }
 }
@@ -1170,6 +1184,48 @@ void test_read_mem_rw()
 
         TEST_ASSERT_EQUAL_HEX64(0x00'00'00'00'00'33'22'11, read_ret);
         TEST_ASSERT_EQUAL(0, read_err);
+    }
+}
+
+void test_fetch()
+{
+    {
+        struct rv64_cpu cpu = {0};
+        init_rv64_cpu(&cpu, NULL);
+        uint32_t ins1          = 0xff'11'22'33;
+        uint32_t ins2          = -1;
+        uint32_t ins3          = 0x00'11'22'33;
+        uint64_t start_address = (cpu.opt.mem_size >> 2) << 2;
+        uint32_t ret_ins       = 0;
+
+        write_mem32(&cpu, start_address - 8, -1);
+        write_mem32(&cpu, start_address - 4, 0);
+        write_mem32(&cpu, start_address, ins1);
+        write_mem32(&cpu, start_address + 4, ins2);
+        write_mem32(&cpu, start_address + 8, ins3);
+        write_mem32(&cpu, start_address + 12, 0);
+
+        cpu.regs[REG_INX_PC] = start_address - 4;
+
+        fetch(&cpu, &ret_ins);
+        advance_pc_or_update_i_flags(&cpu);
+        TEST_ASSERT_EQUAL_HEX32(0, ret_ins);
+
+        fetch(&cpu, &ret_ins);
+        advance_pc_or_update_i_flags(&cpu);
+        TEST_ASSERT_EQUAL_HEX32(ins1, ret_ins);
+
+        fetch(&cpu, &ret_ins);
+        advance_pc_or_update_i_flags(&cpu);
+        TEST_ASSERT_EQUAL_HEX32(ins2, ret_ins);
+
+        fetch(&cpu, &ret_ins);
+        advance_pc_or_update_i_flags(&cpu);
+        TEST_ASSERT_EQUAL_HEX32(ins3, ret_ins);
+
+        fetch(&cpu, &ret_ins);
+        advance_pc_or_update_i_flags(&cpu);
+        TEST_ASSERT_EQUAL_HEX32(0, ret_ins);
     }
 }
 
@@ -1224,6 +1280,7 @@ int main(void)
     RUN_TEST(test_execute_bgeu);
 
     RUN_TEST(test_read_mem_rw);
+    RUN_TEST(test_fetch);
     return UNITY_END();
 }
 

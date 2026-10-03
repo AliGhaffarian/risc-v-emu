@@ -140,10 +140,15 @@ struct cpu_opt {
     uint64_t regs;
 };
 
+struct internal_flags {
+    uint8_t pc_updated; // was previous instructino a branch or jump?
+};
+
 struct rv64_cpu {
     uint64_t *_Nonnull regs;
     uint8_t *_Nonnull mem;
     struct cpu_opt opt;
+    struct internal_flags i_flags;
 };
 
 void free_rv64_cpu(struct rv64_cpu *_Nonnull cpu);
@@ -473,3 +478,10 @@ int write_mem32(
  */
 int write_mem64(
     struct rv64_cpu *_Nonnull cpu, uint64_t address, uint64_t write);
+
+int fetch(struct rv64_cpu *_Nonnull cpu, rv64_instruction_t *_Nonnull ret_ins);
+
+/**
+ * called at the end of the cpu loop, pc is updated, nop, otherwise advance pc
+ */
+void advance_pc_or_update_i_flags(struct rv64_cpu *_Nonnull cpu);
