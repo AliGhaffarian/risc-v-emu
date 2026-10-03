@@ -379,3 +379,97 @@ void execute_bge(
 
 void execute_bgeu(
     struct rv64_cpu *_Nonnull cpu, void *_Nonnull *_Nonnull vdecoded_ins_b);
+
+#define INTERNAL_MEM_READ_UINT_TYPED(cpu, address, ret)                        \
+    ({                                                                         \
+        uint64_t mem_read = 0;                                                 \
+        int err           = 0;                                                 \
+                                                                               \
+        err = read_mem(cpu, address, &mem_read, sizeof(typeof(*(ret))));       \
+                                                                               \
+        *(ret) = mem_read;                                                     \
+                                                                               \
+        err;                                                                   \
+    })
+
+#define INTERNAL_MEM_WRITE_UINT_TYPED(cpu, address, write)                     \
+    ({                                                                         \
+        uint64_t mem_write = write;                                            \
+        int err            = 0;                                                \
+                                                                               \
+        err = write_mem(cpu, address, sizeof(typeof(write)), write);           \
+                                                                               \
+        err;                                                                   \
+    })
+
+/**
+ * @brief read the `length` bytes at `address`, copy into `ret`
+ * @param length can be at most 8
+ * @ret 0 on success, -1 otherwise
+ * TODO: make the memory access virtual
+ * TODO: memory mapped devices
+ */
+int read_mem(
+    struct rv64_cpu *_Nonnull cpu,
+    uint64_t address,
+    uint64_t *_Nonnull ret,
+    uint64_t length);
+
+/**
+ * @brief read the `1` bytes at `address`, copy into `ret`
+ */
+int read_mem8(
+    struct rv64_cpu *_Nonnull cpu, uint64_t address, uint8_t *_Nonnull ret);
+
+/**
+ * @brief read the `2` bytes at `address`, copy into `ret`
+ */
+int read_mem16(
+    struct rv64_cpu *_Nonnull cpu, uint64_t address, uint16_t *_Nonnull ret);
+
+/**
+ * @brief read the `4` bytes at `address`, copy into `ret`
+ */
+int read_mem32(
+    struct rv64_cpu *_Nonnull cpu, uint64_t address, uint32_t *_Nonnull ret);
+
+/**
+ * @brief read the `8` bytes at `address`, copy into `ret`
+ */
+int read_mem64(
+    struct rv64_cpu *_Nonnull cpu, uint64_t address, uint64_t *_Nonnull ret);
+
+/**
+ * @brief write the `length` bytes at `address`, copy into `ret`
+ * @param length can be at most 8
+ * TODO: make the memory access virtual
+ * TODO: memory mapped devices
+ */
+int write_mem(
+    struct rv64_cpu *_Nonnull cpu,
+    uint64_t address,
+    uint64_t length,
+    uint64_t write);
+
+/**
+ * @brief write the `1` bytes at `address`, copy into `ret`
+ */
+int write_mem8(struct rv64_cpu *_Nonnull cpu, uint64_t address, uint8_t write);
+
+/**
+ * @brief write the `2` bytes at `address`, copy into `ret`
+ */
+int write_mem16(
+    struct rv64_cpu *_Nonnull cpu, uint64_t address, uint16_t write);
+
+/**
+ * @brief write the `4` bytes at `address`, copy into `ret`
+ */
+int write_mem32(
+    struct rv64_cpu *_Nonnull cpu, uint64_t address, uint32_t write);
+
+/**
+ * @brief write the `8` bytes at `address`, copy into `ret`
+ */
+int write_mem64(
+    struct rv64_cpu *_Nonnull cpu, uint64_t address, uint64_t write);

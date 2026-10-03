@@ -1145,6 +1145,34 @@ void test_execute_bgeu(void)
     }
 }
 
+void test_read_mem_rw()
+{
+    {
+        struct rv64_cpu cpu = {0};
+        init_rv64_cpu(&cpu, NULL);
+        uint8_t expected_byte1 = 0x11;
+        uint8_t expected_byte2 = 0x22;
+        uint8_t expected_byte3 = 0x33;
+        uint64_t read_address  = cpu.opt.mem_size - 1;
+        uint64_t read_ret      = -1;
+        uint64_t read_err      = 0;
+
+        write_mem8(&cpu, read_address, expected_byte1);
+        write_mem16(
+            &cpu, read_address + 1, (expected_byte3 << 8) | expected_byte2);
+
+        // the following bytes must not be read, as they are beyond the `length`
+        write_mem8(&cpu, read_address + 3, expected_byte3);
+        write_mem8(&cpu, read_address + 4, expected_byte3);
+        write_mem8(&cpu, read_address + 5, expected_byte3);
+
+        read_err = read_mem(&cpu, read_address, &read_ret, 3);
+
+        TEST_ASSERT_EQUAL_HEX64(0x00'00'00'00'00'33'22'11, read_ret);
+        TEST_ASSERT_EQUAL(0, read_err);
+    }
+}
+
 int main(void)
 {
     UNITY_BEGIN();
@@ -1194,6 +1222,8 @@ int main(void)
     RUN_TEST(test_execute_bltu);
     RUN_TEST(test_execute_bge);
     RUN_TEST(test_execute_bgeu);
+
+    RUN_TEST(test_read_mem_rw);
     return UNITY_END();
 }
 

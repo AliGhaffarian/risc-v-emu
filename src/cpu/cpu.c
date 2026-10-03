@@ -1025,3 +1025,95 @@ void execute_bgeu(
         cpu->regs[REG_INX_PC] += decoded_ins->imm;
     }
 }
+
+int read_mem(
+    struct rv64_cpu *_Nonnull cpu,
+    uint64_t address,
+    uint64_t *_Nonnull ret,
+    uint64_t length)
+{
+    assert(ret);
+    assert(cpu);
+
+    assert(length <= 8);
+
+    uint64_t current_fetch = 0;
+
+    (*ret) = 0;
+
+    for(int i = 0; i < length; i++) {
+        current_fetch = cpu->mem[(address + i) % (cpu->opt.mem_size)];
+        // NOLINTNEXTLINE(readability-magic-numbers)
+        current_fetch <<= (i * 8);
+        *ret |= current_fetch;
+    }
+
+    return 0;
+}
+
+int read_mem8(
+    struct rv64_cpu *_Nonnull cpu, uint64_t address, uint8_t *_Nonnull ret)
+{
+    return INTERNAL_MEM_READ_UINT_TYPED(cpu, address, ret);
+}
+
+int read_mem16(
+    struct rv64_cpu *_Nonnull cpu, uint64_t address, uint16_t *_Nonnull ret)
+{
+    return INTERNAL_MEM_READ_UINT_TYPED(cpu, address, ret);
+}
+
+int read_mem32(
+    struct rv64_cpu *_Nonnull cpu, uint64_t address, uint32_t *_Nonnull ret)
+{
+    return INTERNAL_MEM_READ_UINT_TYPED(cpu, address, ret);
+}
+
+int read_mem64(
+    struct rv64_cpu *_Nonnull cpu, uint64_t address, uint64_t *_Nonnull ret)
+{
+    return INTERNAL_MEM_READ_UINT_TYPED(cpu, address, ret);
+}
+
+// NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
+int write_mem(
+    struct rv64_cpu *_Nonnull cpu,
+    uint64_t address,
+    uint64_t length,
+    uint64_t write)
+{
+    assert(cpu);
+
+    assert(length <= 8);
+
+    uint64_t current_fetch = 0;
+
+    for(int i = 0; i < length; i++) {
+        // NOLINTNEXTLINE(readability-magic-numbers)
+        cpu->mem[(address + i) % (cpu->opt.mem_size)] = write & 0xff;
+        // NOLINTNEXTLINE(readability-magic-numbers)
+        write >>= 8;
+    }
+
+    return 0;
+}
+
+int write_mem8(struct rv64_cpu *_Nonnull cpu, uint64_t address, uint8_t write)
+{
+    return INTERNAL_MEM_WRITE_UINT_TYPED(cpu, address, write);
+}
+
+int write_mem16(struct rv64_cpu *_Nonnull cpu, uint64_t address, uint16_t write)
+{
+    return INTERNAL_MEM_WRITE_UINT_TYPED(cpu, address, write);
+}
+
+int write_mem32(struct rv64_cpu *_Nonnull cpu, uint64_t address, uint32_t write)
+{
+    return INTERNAL_MEM_WRITE_UINT_TYPED(cpu, address, write);
+}
+
+int write_mem64(struct rv64_cpu *_Nonnull cpu, uint64_t address, uint64_t write)
+{
+    return INTERNAL_MEM_WRITE_UINT_TYPED(cpu, address, write);
+}
