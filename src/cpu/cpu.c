@@ -16,7 +16,7 @@ int default_decoder_handler(
     return ENOTSUP;
 }
 
-int (*ins_decode_handlers[UINT7B_MAX])(
+int (*ins_decode_handlers[UINT7B_MAX + 1])(
     rv64_instruction_t ins,
     void *_Nullable *_Nonnull ret_decoded,
     uint7b_t opcode,
@@ -25,7 +25,8 @@ int (*ins_decode_handlers[UINT7B_MAX])(
         void *_Nonnull *_Nonnull vdecoded_ins)) = {
     [0 ... UINT7B_MAX - 1] = default_decoder_handler};
 
-void (*_Nonnull execution_handlers[OPCODE_MAX][FUNC3_MAX][FUNC7_MAX])(
+void (*_Nonnull execution_handlers[OPCODE_MAX + 1][FUNC3_MAX + 1]
+                                  [FUNC7_MAX + 1])(
     struct rv64_cpu *_Nonnull cpu, void *_Nonnull *_Nonnull vdecoded_ins);
 
 void __attribute__((constructor())) init_ins_decode_handlers(void)

@@ -148,14 +148,15 @@ void free_rv64_cpu(struct rv64_cpu *_Nonnull cpu);
 #define EXECUTION_HANDLER_INX_DONTCARE 0
 // Rules for execution handlers:
 //  must steal decoded_ins
-extern void (*_Nonnull execution_handlers[OPCODE_MAX][FUNC3_MAX][FUNC7_MAX])(
+extern void (*_Nonnull execution_handlers[OPCODE_MAX + 1][FUNC3_MAX + 1]
+                                         [FUNC7_MAX + 1])(
     struct rv64_cpu *_Nonnull cpu, void *_Nonnull *_Nonnull vdecoded_ins);
 
 /**
  * Rules for decode handlers:
  *  if *ret_decoded is NULL, allocate the memory for it
  */
-extern int (*_Nonnull ins_decode_handlers[OPCODE_MAX])(
+extern int (*_Nonnull ins_decode_handlers[OPCODE_MAX + 1])(
     rv64_instruction_t ins,
     void *_Nullable *_Nonnull ret_decoded,
     uint7b_t opcode,
