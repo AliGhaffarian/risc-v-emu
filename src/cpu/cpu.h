@@ -152,6 +152,9 @@ extern void (*_Nonnull execution_handlers[OPCODE_MAX + 1][FUNC3_MAX + 1]
                                          [FUNC7_MAX + 1])(
     struct rv64_cpu *_Nonnull cpu, void *_Nonnull *_Nonnull vdecoded_ins);
 
+void illegal_instruction_handler(
+    struct rv64_cpu *_Nonnull /*unused*/, void *_Nonnull *_Nonnull /*unused*/);
+
 /**
  * Rules for decode handlers:
  *  if *ret_decoded is NULL, allocate the memory for it
@@ -505,6 +508,8 @@ int fetch(struct rv64_cpu *_Nonnull cpu, rv64_instruction_t *_Nonnull ret_ins);
  * called at the end of the cpu loop, pc is updated, nop, otherwise advance pc
  */
 void advance_pc_or_update_i_flags(struct rv64_cpu *_Nonnull cpu);
+
+void fill_execution_handler_with_default_handler();
 
 void register_execution_handler(
     uint8_t opcode,
