@@ -1,4 +1,6 @@
 #include "helper.h"
+#include "cpu.h"
+#include <stdio.h>
 #include <stdlib.h>
 
 void freep(void *ptr)
@@ -46,4 +48,22 @@ uint64_t repeat_bit_in_num(uint64_t num, uint8_t start, uint8_t bit)
     }
 
     return num;
+}
+
+void debug_dump_cpu(const struct rv64_cpu *_Nonnull cpu)
+{
+    __builtin_dump_struct(cpu, printf);
+    for(int i = 0; i < cpu->opt.regs; i += 2) {
+        printf("x%d: %lx\t\t", i, cpu->regs[i]);
+        printf("x%d: %lx\n", i, cpu->regs[i + 1]);
+    }
+
+    puts("mem:");
+    for(int i = 0; i < cpu->opt.mem_size; i += 4) {
+        printf("%hx: ", i);
+        printf("%hx, ", cpu->mem[i]);
+        printf("%hx, ", cpu->mem[i + 1]);
+        printf("%hx, ", cpu->mem[i + 2]);
+        printf("%hx\n", cpu->mem[i + 4]);
+    }
 }

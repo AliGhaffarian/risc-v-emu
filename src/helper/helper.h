@@ -19,3 +19,6 @@ uint64_t bitmask_from_bit_size(uint64_t bit_size);
 uint64_t
 extract_bits_from_uint64(uint64_t num, uint64_t start, uint64_t bitmask);
 uint64_t repeat_bit_in_num(uint64_t num, uint8_t start, uint8_t bit);
+
+struct rv64_cpu;
+void debug_dump_cpu(const struct rv64_cpu *_Nonnull cpu);
