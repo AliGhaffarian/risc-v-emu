@@ -414,6 +414,14 @@ uint3b_t decode_func7(rv64_instruction_t ins)
     return extract_bits_from_uint64(ins, func7_encoded_bit_pos, bitmask);
 }
 
+const uint64_t opcode_size_bits       = 7;
+const uint64_t opcode_encoded_bit_pos = 0;
+uint8_t decode_opcode(rv64_instruction_t ins)
+{
+    uint64_t bitmask = bitmask_from_bit_size(opcode_size_bits);
+    return extract_bits_from_uint64(ins, opcode_encoded_bit_pos, bitmask);
+}
+
 int decode_ins_r(
     rv64_instruction_t ins,
     void *_Nullable *_Nonnull vret_decoded,
@@ -638,6 +646,42 @@ int init_rv64_cpu(struct rv64_cpu *_Nonnull cpu, struct cpu_opt *_Nullable opt)
     cpu->i_flags.pc_updated = 0;
 
     return 0;
+}
+
+void step_rv64_cpu(struct rv64_cpu *_Nonnull cpu)
+{
+    assert(cpu);
+
+    rv64_instruction_t current_instruction = 0;
+    uint8_t opcode                         = 0;
+    void *decoded_ins                      = NULL;
+    void (*execution_handler)(
+        struct rv64_cpu *_Nonnull cpu, void *_Nonnull *_Nonnull vdecoded_ins);
+    fetch(cpu, &current_instruction);
+
+    opcode = decode_opcode(current_instruction);
+
+    ins_decode_handlers[opcode](
+        current_instruction, &decoded_ins, opcode, &execution_handler);
+
+    execution_handler(cpu, &decoded_ins);
+
+    advance_pc_or_update_i_flags(cpu);
+}
+
+void mainloop_rv64_cpu(struct rv64_cpu *_Nonnull cpu)
+{
+    assert(cpu);
+
+    rv64_instruction_t next_ins = 0;
+
+    while(1) {
+        step_rv64_cpu(cpu);
+        fetch(cpu, &next_ins);
+        if(next_ins == HALT_MAGIC) {
+            break;
+        }
+    }
 }
 
 void execute_addi(

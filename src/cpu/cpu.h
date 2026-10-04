@@ -162,7 +162,11 @@ extern int (*_Nonnull ins_decode_handlers[OPCODE_MAX])(
     void (*_Nullable *_Nonnull ret_execution_handler)(
         struct rv64_cpu *_Nonnull cpu, void *_Nonnull *_Nonnull vdecoded_ins));
 
+#define HALT_MAGIC                                                             \
+    0x00'00'00'00 // magic isntruction to halt, subject for removal when we introduce trap handling
 int init_rv64_cpu(struct rv64_cpu *_Nonnull cpu, struct cpu_opt *_Nullable opt);
+void step_rv64_cpu(struct rv64_cpu *_Nonnull cpu);
+void mainloop_rv64_cpu(struct rv64_cpu *_Nonnull cpu);
 
 struct decoded_rv64_base_ins_r {
     uint7b_t opcode;
@@ -213,6 +217,7 @@ struct decoded_rv64_base_ins_j {
 uint5b_t decode_rd(rv64_instruction_t ins);
 uint5b_t decode_rs1(rv64_instruction_t ins);
 uint5b_t decode_rs2(rv64_instruction_t ins);
+uint8_t decode_opcode(rv64_instruction_t ins);
 
 uint3b_t decode_func3(rv64_instruction_t ins);
 uint3b_t decode_func7(rv64_instruction_t ins);
