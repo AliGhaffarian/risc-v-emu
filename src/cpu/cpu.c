@@ -9,7 +9,9 @@
 int default_decoder_handler(
     rv64_instruction_t /*unused*/,
     void *_Nullable *_Nonnull /*unused*/,
-    uint7b_t /*unused*/)
+    uint7b_t /*unused*/,
+    void (*_Nullable *_Nonnull /*unused*/)(
+        struct rv64_cpu *_Nonnull cpu, void *_Nonnull *_Nonnull vdecoded_ins))
 {
     return ENOTSUP;
 }
@@ -17,7 +19,11 @@ int default_decoder_handler(
 int (*ins_decode_handlers[UINT7B_MAX])(
     rv64_instruction_t ins,
     void *_Nullable *_Nonnull ret_decoded,
-    uint7b_t opcode) = {[0 ... UINT7B_MAX - 1] = default_decoder_handler};
+    uint7b_t opcode,
+    void (*_Nullable *_Nonnull ret_execution_handler)(
+        struct rv64_cpu *_Nonnull cpu,
+        void *_Nonnull *_Nonnull vdecoded_ins)) = {
+    [0 ... UINT7B_MAX - 1] = default_decoder_handler};
 
 void (*_Nonnull execution_handlers[OPCODE_MAX][FUNC3_MAX][FUNC7_MAX])(
     struct rv64_cpu *_Nonnull cpu, void *_Nonnull *_Nonnull vdecoded_ins);
@@ -411,7 +417,9 @@ uint3b_t decode_func7(rv64_instruction_t ins)
 int decode_ins_r(
     rv64_instruction_t ins,
     void *_Nullable *_Nonnull vret_decoded,
-    uint7b_t opcode)
+    uint7b_t opcode,
+    void (*_Nullable *_Nonnull ret_execution_handler)(
+        struct rv64_cpu *_Nonnull cpu, void *_Nonnull *_Nonnull vdecoded_ins))
 {
     assert(vret_decoded);
 
@@ -432,12 +440,18 @@ int decode_ins_r(
     (*ret_decoded)->func3  = decode_func3(ins);
     (*ret_decoded)->func7  = decode_func7(ins);
 
+    *ret_execution_handler =
+        execution_handlers[(*ret_decoded)->opcode][(*ret_decoded)->func3]
+                          [(*ret_decoded)->func7];
+
     return 0;
 }
 int decode_ins_i(
     rv64_instruction_t ins,
     void *_Nullable *_Nonnull vret_decoded,
-    uint7b_t opcode)
+    uint7b_t opcode,
+    void (*_Nullable *_Nonnull ret_execution_handler)(
+        struct rv64_cpu *_Nonnull cpu, void *_Nonnull *_Nonnull vdecoded_ins))
 {
     assert(vret_decoded);
 
@@ -457,12 +471,24 @@ int decode_ins_i(
     (*ret_decoded)->func3  = decode_func3(ins);
     (*ret_decoded)->imm    = decode_imm_i(ins);
 
+    // HACK: since the z axis is don't care, use the value of the func7 position, since shift right instructions use that as shift type
+    //  as a result, right shift handlers are correctly selected, and other instructions indexes were don't care in the first place
+    //  we need to clear the least significant bit because the shamt field extends to the least significant bit of func7
+    uint8_t hack_func7 = decode_func7(ins);
+    hack_func7 >>= 1;
+    hack_func7 <<= 1;
+    *ret_execution_handler =
+        execution_handlers[(*ret_decoded)->opcode][(*ret_decoded)->func3]
+                          [hack_func7];
+
     return 0;
 }
 int decode_ins_s(
     rv64_instruction_t ins,
     void *_Nullable *_Nonnull vret_decoded,
-    uint7b_t opcode)
+    uint7b_t opcode,
+    void (*_Nullable *_Nonnull ret_execution_handler)(
+        struct rv64_cpu *_Nonnull cpu, void *_Nonnull *_Nonnull vdecoded_ins))
 {
     assert(vret_decoded);
 
@@ -482,12 +508,18 @@ int decode_ins_s(
     (*ret_decoded)->func3  = decode_func3(ins);
     (*ret_decoded)->imm    = decode_imm_s(ins);
 
+    *ret_execution_handler =
+        execution_handlers[(*ret_decoded)->opcode][(*ret_decoded)->func3]
+                          [EXECUTION_HANDLER_INX_DONTCARE];
+
     return 0;
 }
 int decode_ins_b(
     rv64_instruction_t ins,
     void *_Nullable *_Nonnull vret_decoded,
-    uint7b_t opcode)
+    uint7b_t opcode,
+    void (*_Nullable *_Nonnull ret_execution_handler)(
+        struct rv64_cpu *_Nonnull cpu, void *_Nonnull *_Nonnull vdecoded_ins))
 {
     assert(vret_decoded);
 
@@ -507,12 +539,18 @@ int decode_ins_b(
     (*ret_decoded)->func3  = decode_func3(ins);
     (*ret_decoded)->imm    = decode_imm_b(ins);
 
+    *ret_execution_handler =
+        execution_handlers[(*ret_decoded)->opcode][(*ret_decoded)->func3]
+                          [EXECUTION_HANDLER_INX_DONTCARE];
+
     return 0;
 }
 int decode_ins_u(
     rv64_instruction_t ins,
     void *_Nullable *_Nonnull vret_decoded,
-    uint7b_t opcode)
+    uint7b_t opcode,
+    void (*_Nullable *_Nonnull ret_execution_handler)(
+        struct rv64_cpu *_Nonnull cpu, void *_Nonnull *_Nonnull vdecoded_ins))
 {
     assert(vret_decoded);
 
@@ -530,12 +568,18 @@ int decode_ins_u(
     (*ret_decoded)->rd     = decode_rd(ins);
     (*ret_decoded)->imm    = decode_imm_u(ins);
 
+    *ret_execution_handler = execution_handlers[(*ret_decoded)->opcode]
+                                               [EXECUTION_HANDLER_INX_DONTCARE]
+                                               [EXECUTION_HANDLER_INX_DONTCARE];
+
     return 0;
 }
 int decode_ins_j(
     rv64_instruction_t ins,
     void *_Nullable *_Nonnull vret_decoded,
-    uint7b_t opcode)
+    uint7b_t opcode,
+    void (*_Nullable *_Nonnull ret_execution_handler)(
+        struct rv64_cpu *_Nonnull cpu, void *_Nonnull *_Nonnull vdecoded_ins))
 {
     assert(vret_decoded);
 
@@ -552,6 +596,10 @@ int decode_ins_j(
     (*ret_decoded)->opcode = opcode;
     (*ret_decoded)->rd     = decode_rd(ins);
     (*ret_decoded)->imm    = decode_imm_j(ins);
+
+    *ret_execution_handler = execution_handlers[(*ret_decoded)->opcode]
+                                               [EXECUTION_HANDLER_INX_DONTCARE]
+                                               [EXECUTION_HANDLER_INX_DONTCARE];
 
     return 0;
 }

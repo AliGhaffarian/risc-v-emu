@@ -45,15 +45,6 @@ typedef uint32_t uint20b_t;
 #define FUNC3_MAX  UINT3B_MAX
 #define FUNC7_MAX  UINT7B_MAX
 
-/**
- * Rules for decode handlers:
- *  if *ret_decoded is NULL, allocate the memory for it
- */
-extern int (*_Nonnull ins_decode_handlers[OPCODE_MAX])(
-    rv64_instruction_t ins,
-    void *_Nullable *_Nonnull ret_decoded,
-    uint7b_t opcode);
-
 /** single quotes are placed to represent the rv64 unpriviledge
  * chapter 36 opcode table. non base instruction are also included
  * for the sake of fully representing the table
@@ -154,10 +145,22 @@ struct rv64_cpu {
 void free_rv64_cpu(struct rv64_cpu *_Nonnull cpu);
 #define _cleanup_free_rv64_cpu_ __attribute__((__cleanup__(free_rv64_cpu)))
 
+#define EXECUTION_HANDLER_INX_DONTCARE 0
 // Rules for execution handlers:
 //  must steal decoded_ins
 extern void (*_Nonnull execution_handlers[OPCODE_MAX][FUNC3_MAX][FUNC7_MAX])(
     struct rv64_cpu *_Nonnull cpu, void *_Nonnull *_Nonnull vdecoded_ins);
+
+/**
+ * Rules for decode handlers:
+ *  if *ret_decoded is NULL, allocate the memory for it
+ */
+extern int (*_Nonnull ins_decode_handlers[OPCODE_MAX])(
+    rv64_instruction_t ins,
+    void *_Nullable *_Nonnull ret_decoded,
+    uint7b_t opcode,
+    void (*_Nullable *_Nonnull ret_execution_handler)(
+        struct rv64_cpu *_Nonnull cpu, void *_Nonnull *_Nonnull vdecoded_ins));
 
 int init_rv64_cpu(struct rv64_cpu *_Nonnull cpu, struct cpu_opt *_Nullable opt);
 
@@ -219,27 +222,39 @@ uint3b_t decode_func7(rv64_instruction_t ins);
 int decode_ins_r(
     rv64_instruction_t ins,
     void *_Nullable *_Nonnull vret_decoded,
-    uint7b_t opcode);
+    uint7b_t opcode,
+    void (*_Nullable *_Nonnull ret_execution_handler)(
+        struct rv64_cpu *_Nonnull cpu, void *_Nonnull *_Nonnull vdecoded_ins));
 int decode_ins_i(
     rv64_instruction_t ins,
     void *_Nullable *_Nonnull vret_decoded,
-    uint7b_t opcode);
+    uint7b_t opcode,
+    void (*_Nullable *_Nonnull ret_execution_handler)(
+        struct rv64_cpu *_Nonnull cpu, void *_Nonnull *_Nonnull vdecoded_ins));
 int decode_ins_s(
     rv64_instruction_t ins,
     void *_Nullable *_Nonnull vret_decoded,
-    uint7b_t opcode);
+    uint7b_t opcode,
+    void (*_Nullable *_Nonnull ret_execution_handler)(
+        struct rv64_cpu *_Nonnull cpu, void *_Nonnull *_Nonnull vdecoded_ins));
 int decode_ins_b(
     rv64_instruction_t ins,
     void *_Nullable *_Nonnull vret_decoded,
-    uint7b_t opcode);
+    uint7b_t opcode,
+    void (*_Nullable *_Nonnull ret_execution_handler)(
+        struct rv64_cpu *_Nonnull cpu, void *_Nonnull *_Nonnull vdecoded_ins));
 int decode_ins_u(
     rv64_instruction_t ins,
     void *_Nullable *_Nonnull vret_decoded,
-    uint7b_t opcode);
+    uint7b_t opcode,
+    void (*_Nullable *_Nonnull ret_execution_handler)(
+        struct rv64_cpu *_Nonnull cpu, void *_Nonnull *_Nonnull vdecoded_ins));
 int decode_ins_j(
     rv64_instruction_t ins,
     void *_Nullable *_Nonnull vret_decoded,
-    uint7b_t opcode);
+    uint7b_t opcode,
+    void (*_Nullable *_Nonnull ret_execution_handler)(
+        struct rv64_cpu *_Nonnull cpu, void *_Nonnull *_Nonnull vdecoded_ins));
 
 uint64_t decode_imm_i(rv64_instruction_t ins);
 uint64_t decode_imm_s(rv64_instruction_t ins);
