@@ -49,6 +49,7 @@ void __attribute__((constructor())) init_ins_decode_handlers(void)
     ins_decode_handlers[OP_IMM_32] = decode_ins_i;
     ins_decode_handlers[AUIPC]     = decode_ins_u;
     ins_decode_handlers[OP_32]     = decode_ins_r;
+    ins_decode_handlers[BRANCH]    = decode_ins_b;
 }
 
 void __attribute__((constructor())) init_execution_handlers(void)
