@@ -132,7 +132,7 @@ int main(int argc, char **argv)
     free_memory_in_machine = cpu.opt.mem_size;
 
     while(current_read_bytes && free_memory_in_machine) {
-        current_read_bytes = fread(cpy_buff, BUFSIZ, 1, program_file);
+        current_read_bytes = fread(cpy_buff, 1, BUFSIZ, program_file);
         total_read_bytes += current_read_bytes;
 
         bytes_to_write = current_read_bytes > free_memory_in_machine
