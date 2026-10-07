@@ -14,6 +14,8 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
 option(EMU_BUILD_TESTING "enable testing" ${BUILD_TESTING})
 option(EMU_BUILD_CHECKS "enable all checks and sanitizers")
 
+add_compile_options("-fmacro-prefix-map=${CMAKE_SOURCE_DIR}/src/=")
+
 if(EMU_BUILD_CHECKS)
     set(
         CMAKE_C_CLANG_TIDY "clang-tidy;--use-color")
