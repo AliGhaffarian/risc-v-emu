@@ -133,13 +133,14 @@ int main(int argc, char **argv)
 
     while(current_read_bytes && free_memory_in_machine) {
         current_read_bytes = fread(cpy_buff, 1, BUFSIZ, program_file);
-        total_read_bytes += current_read_bytes;
 
         bytes_to_write = current_read_bytes < free_memory_in_machine
                              ? current_read_bytes
                              : free_memory_in_machine;
+
         memcpy(cpu.mem + total_read_bytes, cpy_buff, bytes_to_write);
 
+        total_read_bytes += current_read_bytes;
         free_memory_in_machine -= bytes_to_write;
     }
 
