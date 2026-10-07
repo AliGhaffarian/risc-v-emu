@@ -1,5 +1,6 @@
 #include "cpu.h"
 #include "helper.h"
+#include "logger.h"
 #include <errno.h>
 #include <getopt.h>
 #include <stdio.h>
@@ -11,24 +12,44 @@
  */
 struct args_struct {
     char *program_file;
+    uint64_t mem_size;
+    int log_level;
 };
 
 struct args_struct args = {
     .program_file = "",
+    .mem_size     = BASE_MEM_SIZE,
+    .log_level    = LOG_INFO,
 };
 
-char *usage_help = "usage: rv_emu -p[rogram-file] PROGRAM_FILENAME";
+char *usage_help =
+    "usage: rv_emu -l[og-level] LOG_LEVEL -p[rogram-file] PROGRAM_FILENAME";
 
 struct option long_options[] = {
     {.name    = "program-file",
      .has_arg = required_argument,
      .flag    = NULL,
-     .val     = 'c'},
+     .val     = 'p'},
+    {.name    = "mem-size",
+     .has_arg = optional_argument,
+     .flag    = NULL,
+     .val     = 'm'},
+    {.name    = "log-level",
+     .has_arg = required_argument,
+     .flag    = NULL,
+     .val     = 'l'},
 };
 
 void print_help_and_quit()
 {
     puts(usage_help);
+
+    printf("log levels:\n");
+    for(int i = 1; i < LOG_DEBUG + 1; i++) {
+        printf("%s, ", LOG_LEVELS2STR[i]);
+    }
+    puts("");
+
     exit(1);
 }
 
@@ -39,7 +60,8 @@ void handle_args(int argc, char **argv)
     int err;
     int optchar;
     while(1) {
-        optchar = getopt_long(argc, argv, "hp:", long_options, &option_index);
+        optchar =
+            getopt_long(argc, argv, "hp:l:m:", long_options, &option_index);
         if(optchar == -1) {
             break;
         }
@@ -47,6 +69,20 @@ void handle_args(int argc, char **argv)
         case 'p':
             args.program_file = strdup(optarg);
             required_args--;
+            break;
+        case 'm':
+            args.mem_size = strtoul(optarg, NULL, 10);
+            if(errno) {
+                printf("invalid mem size: %s", optarg);
+                print_help_and_quit();
+            }
+        case 'l':
+            args.log_level = enum_from_string_log_levels(optarg);
+            if(!args.log_level) {
+                printf("invalid log level: %s\n", optarg);
+                print_help_and_quit();
+            }
+            current_log_level = args.log_level;
             break;
         case 'h':
             print_help_and_quit();
@@ -71,8 +107,14 @@ int main(int argc, char **argv)
     size_t current_read_bytes     = -1;
     size_t free_memory_in_machine = 0;
     size_t bytes_to_write         = 0;
+    int err                       = 0;
+    struct cpu_opt c_opt          = {
+        .mem_size = BASE_MEM_SIZE,
+        .regs     = BASE_REGS_NUM,
+    };
 
     handle_args(argc, argv);
+    c_opt.mem_size = args.mem_size,
 
     program_file = fopen(args.program_file, "r");
     if(!program_file) {
@@ -80,7 +122,13 @@ int main(int argc, char **argv)
         exit(1);
     }
 
-    init_rv64_cpu(&cpu, NULL);
+    err = init_rv64_cpu(&cpu, NULL);
+    if(err) {
+        logger(LOG_ERROR, stdout, "error initing the cpu\n");
+        exit(1);
+    }
+    logger(LOG_DEBUG, stdout, "init cpu success\n");
+
     free_memory_in_machine = cpu.opt.mem_size;
 
     while(current_read_bytes && free_memory_in_machine) {
