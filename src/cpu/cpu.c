@@ -24,7 +24,7 @@ int (*ins_decode_handlers[UINT7B_MAX + 1])(
     void (*_Nullable *_Nonnull ret_execution_handler)(
         struct rv64_cpu *_Nonnull cpu,
         void *_Nonnull *_Nonnull vdecoded_ins)) = {
-    [0 ... UINT7B_MAX - 1] = default_decoder_handler};
+    [0 ... UINT7B_MAX] = default_decoder_handler};
 
 void (*_Nonnull execution_handlers[OPCODE_MAX + 1][FUNC3_MAX + 1]
                                   [FUNC7_MAX + 1])(
