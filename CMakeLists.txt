@@ -26,6 +26,10 @@ if(EMU_BUILD_CHECKS)
     set(
         CMAKE_C_LINK_WHAT_YOU_USE)
     add_compile_options("-g")
+
+    # function call instrumentation
+    add_compile_options("-finstrument-functions")
+    add_link_options(-rdynamic)
 endif()
 
 add_subdirectory(src)

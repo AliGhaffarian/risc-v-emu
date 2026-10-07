@@ -1,4 +1,6 @@
+#define _GNU_SOURCE
 #include "logger.h"
+#include <dlfcn.h>
 #include <string.h>
 
 volatile int current_log_level = LOG_INFO;
@@ -21,4 +23,14 @@ enum LOG_LEVELS enum_from_string_log_levels(char *str)
         }
     }
     return 0;
+}
+
+#define NOINST __attribute__((no_instrument_function))
+
+// NOLINTNEXTLINE
+NOINST void __cyg_profile_func_enter(void *fn, void *caller)
+{
+    Dl_info callee;
+    dladdr(fn, &callee);
+    logger(LOG_DEBUG, stdout, "%s was called\n", callee.dli_sname);
 }
