@@ -13,7 +13,8 @@ int default_decoder_handler(
     void (*_Nullable *_Nonnull /*unused*/)(
         struct rv64_cpu *_Nonnull cpu, void *_Nonnull *_Nonnull vdecoded_ins))
 {
-    return ENOTSUP;
+    puts("hit an illegal instruction: TODO: handle exceptions");
+    exit(1); // no handler to return, needs trap handling probably
 }
 
 int (*ins_decode_handlers[UINT7B_MAX + 1])(
@@ -30,8 +31,11 @@ void (*_Nonnull execution_handlers[OPCODE_MAX + 1][FUNC3_MAX + 1]
     struct rv64_cpu *_Nonnull cpu, void *_Nonnull *_Nonnull vdecoded_ins);
 
 void illegal_instruction_handler(
-    struct rv64_cpu *_Nonnull /*unused*/, void *_Nonnull *_Nonnull /*unused*/)
+    struct rv64_cpu *_Nonnull /*unused*/, void *_Nonnull *_Nonnull decoded_ins)
 {
+    assert(decoded_ins);
+    assert(*decoded_ins);
+    free(MOVE(decoded_ins));
     puts("hit an illegal instruction: TODO: handle exceptions");
 }
 
