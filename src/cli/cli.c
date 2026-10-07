@@ -144,7 +144,11 @@ int main(int argc, char **argv)
     }
 
     if(current_read_bytes) {
-        puts("not enough memory in machine");
+        long end_of_file = 0;
+        fseek(program_file, 0, SEEK_END);
+        end_of_file = ftell(program_file);
+        printf("not enough memory in machine, need %lu bytes", end_of_file);
+        debug_dump_cpu(&cpu);
         exit(1);
     }
 
