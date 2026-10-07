@@ -1,6 +1,7 @@
 #include "cpu.h"
 #include "generated_aliases.h"
 #include "helper.h"
+#include "logger.h"
 #include <assert.h>
 #include <errno.h>
 #include <stdio.h>
@@ -10,11 +11,16 @@ int default_decoder_handler(
     rv64_instruction_t /*unused*/,
     void *_Nullable *_Nonnull /*unused*/,
     uint7b_t /*unused*/,
-    void (*_Nullable *_Nonnull /*unused*/)(
+    void (*_Nullable *_Nonnull execution_handler)(
         struct rv64_cpu *_Nonnull cpu, void *_Nonnull *_Nonnull vdecoded_ins))
 {
-    puts("hit an illegal instruction: TODO: handle exceptions");
-    exit(1); // no handler to return, needs trap handling probably
+    logger(
+        LOG_ERROR,
+        stdout,
+        "hit an illegal instruction: returning illegal_instruction_handler "
+        "(TODO: handle exceptions.)\n");
+    *execution_handler = illegal_instruction_handler;
+    return -ENOTSUP;
 }
 
 int (*ins_decode_handlers[UINT7B_MAX + 1])(
@@ -31,12 +37,11 @@ void (*_Nonnull execution_handlers[OPCODE_MAX + 1][FUNC3_MAX + 1]
     struct rv64_cpu *_Nonnull cpu, void *_Nonnull *_Nonnull vdecoded_ins);
 
 void illegal_instruction_handler(
-    struct rv64_cpu *_Nonnull /*unused*/, void *_Nonnull *_Nonnull decoded_ins)
+    struct rv64_cpu *_Nonnull cpu, void *_Nonnull *_Nonnull decoded_ins)
 {
-    assert(decoded_ins);
-    assert(*decoded_ins);
-    free(MOVE(decoded_ins));
+    debug_dump_cpu(cpu);
     puts("hit an illegal instruction: TODO: handle exceptions");
+    exit(1);
 }
 
 void __attribute__((constructor())) init_ins_decode_handlers(void)
@@ -671,8 +676,11 @@ void step_rv64_cpu(struct rv64_cpu *_Nonnull cpu)
     void (*execution_handler)(
         struct rv64_cpu *_Nonnull cpu, void *_Nonnull *_Nonnull vdecoded_ins);
     fetch(cpu, &current_instruction);
+    logger(
+        LOG_DEBUG, stdout, "fetched instruction: %x\n", current_instruction);
 
     opcode = decode_opcode(current_instruction);
+    logger(LOG_DEBUG, stdout, "opcode: %x\n", opcode);
 
     ins_decode_handlers[opcode](
         current_instruction, &decoded_ins, opcode, &execution_handler);
