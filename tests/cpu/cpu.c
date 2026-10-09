@@ -100,7 +100,7 @@ void test_decode_imm_i(void)
 
     uint64_t ins = (expected_imm1 << 20);
 
-    uint64_t got = decode_imm_s(ins);
+    uint64_t got = decode_imm_i(ins);
 
     uint64_t got_imm1 = (got >> 0) & 0b1111'1111'1111;
 
@@ -1264,6 +1264,7 @@ int main(void)
     RUN_TEST(test_decode_imm_u);
     RUN_TEST(test_decode_imm_j);
     RUN_TEST(test_decode_imm_s);
+    RUN_TEST(test_decode_imm_i);
 
     RUN_TEST(test_decode_rd);
     RUN_TEST(test_decode_rs1);
@@ -1287,7 +1288,7 @@ int main(void)
     RUN_TEST(test_execute_add);
     RUN_TEST(test_execute_sub);
     RUN_TEST(test_execute_slt);
-    RUN_TEST(test_execute_slti);
+    RUN_TEST(test_execute_sltu);
     RUN_TEST(test_execute_and);
     RUN_TEST(test_execute_or);
     RUN_TEST(test_execute_xor);
