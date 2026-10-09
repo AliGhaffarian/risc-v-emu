@@ -99,26 +99,35 @@ void __attribute__((constructor())) init_execution_handlers(void)
     func3 = BGEU_FUNC3;
     register_execution_handler(BRANCH, NULL, &func3, execute_bgeu);
 
-    // TODO:
     // -------------------------------------------------------------------------
     // LOAD (I-Type)
     // -------------------------------------------------------------------------
-    // func3 = LB_FUNC3;  register_execution_handler(LOAD, NULL, &func3, execute_lb);
-    // func3 = LH_FUNC3;  register_execution_handler(LOAD, NULL, &func3, execute_lh);
-    // func3 = LW_FUNC3;  register_execution_handler(LOAD, NULL, &func3, execute_lw);
-    // func3 = LD_FUNC3;  register_execution_handler(LOAD, NULL, &func3, execute_ld);
-    // func3 = LBU_FUNC3; register_execution_handler(LOAD, NULL, &func3, execute_lbu);
-    // func3 = LHU_FUNC3; register_execution_handler(LOAD, NULL, &func3, execute_lhu);
-    // func3 = LWU_FUNC3; register_execution_handler(LOAD, NULL, &func3, execute_lwu);
+    func3 = LB_FUNC3;
+    register_execution_handler(LOAD, NULL, &func3, execute_lb);
+    func3 = LH_FUNC3;
+    register_execution_handler(LOAD, NULL, &func3, execute_lh);
+    func3 = LW_FUNC3;
+    register_execution_handler(LOAD, NULL, &func3, execute_lw);
+    func3 = LD_FUNC3;
+    register_execution_handler(LOAD, NULL, &func3, execute_ld);
+    func3 = LBU_FUNC3;
+    register_execution_handler(LOAD, NULL, &func3, execute_lbu);
+    func3 = LHU_FUNC3;
+    register_execution_handler(LOAD, NULL, &func3, execute_lhu);
+    func3 = LWU_FUNC3;
+    register_execution_handler(LOAD, NULL, &func3, execute_lwu);
 
-    // TODO:
     // -------------------------------------------------------------------------
     // STORE (S-Type)
     // -------------------------------------------------------------------------
-    // func3 = SB_FUNC3; register_execution_handler(STORE, NULL, &func3, execute_sb);
-    // func3 = SH_FUNC3; register_execution_handler(STORE, NULL, &func3, execute_sh);
-    // func3 = SW_FUNC3; register_execution_handler(STORE, NULL, &func3, execute_sw);
-    // func3 = SD_FUNC3; register_execution_handler(STORE, NULL, &func3, execute_sd);
+    func3 = SB_FUNC3;
+    register_execution_handler(STORE, NULL, &func3, execute_sb);
+    func3 = SH_FUNC3;
+    register_execution_handler(STORE, NULL, &func3, execute_sh);
+    func3 = SW_FUNC3;
+    register_execution_handler(STORE, NULL, &func3, execute_sw);
+    func3 = SD_FUNC3;
+    register_execution_handler(STORE, NULL, &func3, execute_sd);
 
     // -------------------------------------------------------------------------
     // OP-IMM (I-Type Immediate Arithmetic & Shifts)
@@ -1392,6 +1401,192 @@ void execute_bgeu(
         set_general_purpose_register(
             cpu, REG_INX_PC, cpu->regs[REG_INX_PC] + decoded_ins->imm);
     }
+}
+
+void execute_ld(
+    struct rv64_cpu *_Nonnull cpu, void *_Nonnull *_Nonnull vdecoded_ins_i)
+{
+    assert(cpu);
+    assert(vdecoded_ins_i);
+    assert(*vdecoded_ins_i);
+
+    _cleanup_free_ struct decoded_rv64_base_ins_i *decoded_ins =
+        MOVE(vdecoded_ins_i);
+
+    uint64_t loaded = 0;
+
+    read_mem64(cpu, cpu->regs[decoded_ins->rs1] + decoded_ins->imm, &loaded);
+
+    set_general_purpose_register(cpu, decoded_ins->rd, loaded);
+}
+
+void execute_lw(
+    struct rv64_cpu *_Nonnull cpu, void *_Nonnull *_Nonnull vdecoded_ins_i)
+{
+    assert(cpu);
+    assert(vdecoded_ins_i);
+    assert(*vdecoded_ins_i);
+
+    _cleanup_free_ struct decoded_rv64_base_ins_i *decoded_ins =
+        MOVE(vdecoded_ins_i);
+
+    uint32_t loaded = 0;
+
+    read_mem32(cpu, cpu->regs[decoded_ins->rs1] + decoded_ins->imm, &loaded);
+
+    set_general_purpose_register(
+        cpu, decoded_ins->rd, sign_extend_u32_to_u64(loaded));
+}
+
+void execute_lwu(
+    struct rv64_cpu *_Nonnull cpu, void *_Nonnull *_Nonnull vdecoded_ins_i)
+{
+    assert(cpu);
+    assert(vdecoded_ins_i);
+    assert(*vdecoded_ins_i);
+
+    _cleanup_free_ struct decoded_rv64_base_ins_i *decoded_ins =
+        MOVE(vdecoded_ins_i);
+
+    uint32_t loaded = 0;
+
+    read_mem32(cpu, cpu->regs[decoded_ins->rs1] + decoded_ins->imm, &loaded);
+
+    set_general_purpose_register(cpu, decoded_ins->rd, loaded);
+}
+
+void execute_lh(
+    struct rv64_cpu *_Nonnull cpu, void *_Nonnull *_Nonnull vdecoded_ins_i)
+{
+    assert(cpu);
+    assert(vdecoded_ins_i);
+    assert(*vdecoded_ins_i);
+
+    _cleanup_free_ struct decoded_rv64_base_ins_i *decoded_ins =
+        MOVE(vdecoded_ins_i);
+
+    uint16_t loaded = 0;
+
+    read_mem16(cpu, cpu->regs[decoded_ins->rs1] + decoded_ins->imm, &loaded);
+
+    set_general_purpose_register(
+        cpu, decoded_ins->rd, sign_extend_u32_to_u64(loaded));
+}
+
+void execute_lhu(
+    struct rv64_cpu *_Nonnull cpu, void *_Nonnull *_Nonnull vdecoded_ins_i)
+{
+    assert(cpu);
+    assert(vdecoded_ins_i);
+    assert(*vdecoded_ins_i);
+
+    _cleanup_free_ struct decoded_rv64_base_ins_i *decoded_ins =
+        MOVE(vdecoded_ins_i);
+
+    uint16_t loaded = 0;
+
+    read_mem16(cpu, cpu->regs[decoded_ins->rs1] + decoded_ins->imm, &loaded);
+
+    set_general_purpose_register(cpu, decoded_ins->rd, loaded);
+}
+
+void execute_lb(
+    struct rv64_cpu *_Nonnull cpu, void *_Nonnull *_Nonnull vdecoded_ins_i)
+{
+    assert(cpu);
+    assert(vdecoded_ins_i);
+    assert(*vdecoded_ins_i);
+
+    _cleanup_free_ struct decoded_rv64_base_ins_i *decoded_ins =
+        MOVE(vdecoded_ins_i);
+
+    uint8_t loaded = 0;
+
+    read_mem8(cpu, cpu->regs[decoded_ins->rs1] + decoded_ins->imm, &loaded);
+
+    set_general_purpose_register(
+        cpu, decoded_ins->rd, sign_extend_u32_to_u64(loaded));
+}
+
+void execute_lbu(
+    struct rv64_cpu *_Nonnull cpu, void *_Nonnull *_Nonnull vdecoded_ins_i)
+{
+    assert(cpu);
+    assert(vdecoded_ins_i);
+    assert(*vdecoded_ins_i);
+
+    _cleanup_free_ struct decoded_rv64_base_ins_i *decoded_ins =
+        MOVE(vdecoded_ins_i);
+
+    uint8_t loaded = 0;
+
+    read_mem8(cpu, cpu->regs[decoded_ins->rs1] + decoded_ins->imm, &loaded);
+
+    set_general_purpose_register(cpu, decoded_ins->rd, loaded);
+}
+
+void execute_sd(
+    struct rv64_cpu *_Nonnull cpu, void *_Nonnull *_Nonnull vdecoded_ins_s)
+{
+    assert(cpu);
+    assert(vdecoded_ins_s);
+    assert(*vdecoded_ins_s);
+
+    _cleanup_free_ struct decoded_rv64_base_ins_s *decoded_ins =
+        MOVE(vdecoded_ins_s);
+
+    write_mem64(
+        cpu,
+        cpu->regs[decoded_ins->rs1] + decoded_ins->imm,
+        cpu->regs[decoded_ins->rs2]);
+}
+
+void execute_sw(
+    struct rv64_cpu *_Nonnull cpu, void *_Nonnull *_Nonnull vdecoded_ins_s)
+{
+    assert(cpu);
+    assert(vdecoded_ins_s);
+    assert(*vdecoded_ins_s);
+
+    _cleanup_free_ struct decoded_rv64_base_ins_s *decoded_ins =
+        MOVE(vdecoded_ins_s);
+
+    write_mem32(
+        cpu,
+        cpu->regs[decoded_ins->rs1] + decoded_ins->imm,
+        cpu->regs[decoded_ins->rs2]);
+}
+
+void execute_sh(
+    struct rv64_cpu *_Nonnull cpu, void *_Nonnull *_Nonnull vdecoded_ins_s)
+{
+    assert(cpu);
+    assert(vdecoded_ins_s);
+    assert(*vdecoded_ins_s);
+
+    _cleanup_free_ struct decoded_rv64_base_ins_s *decoded_ins =
+        MOVE(vdecoded_ins_s);
+
+    write_mem16(
+        cpu,
+        cpu->regs[decoded_ins->rs1] + decoded_ins->imm,
+        cpu->regs[decoded_ins->rs2]);
+}
+
+void execute_sb(
+    struct rv64_cpu *_Nonnull cpu, void *_Nonnull *_Nonnull vdecoded_ins_s)
+{
+    assert(cpu);
+    assert(vdecoded_ins_s);
+    assert(*vdecoded_ins_s);
+
+    _cleanup_free_ struct decoded_rv64_base_ins_s *decoded_ins =
+        MOVE(vdecoded_ins_s);
+
+    write_mem8(
+        cpu,
+        cpu->regs[decoded_ins->rs1] + decoded_ins->imm,
+        cpu->regs[decoded_ins->rs2]);
 }
 
 int read_mem(

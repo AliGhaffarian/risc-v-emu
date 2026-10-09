@@ -1,7 +1,9 @@
 #include "cpu.h"
 #include "generated_aliases.h"
+#include "helper.h"
 #include "unity.h"
 #include <stdlib.h>
+#include <string.h>
 
 // NOLINTBEGIN(readability-magic-numbers)
 
@@ -1257,6 +1259,339 @@ void test_execution_handlers_table()
     }
 }
 
+void test_execute_ld()
+{
+    {
+        struct decoded_rv64_base_ins_i *ins = calloc(1, sizeof(*ins));
+        struct rv64_cpu cpu                 = {0};
+        init_rv64_cpu(&cpu, NULL);
+        char mem[] =
+            "\x11\x22\x33\x44\x55\x66\x77\x88\x99\xaa\xbb\xcc\xdd\xee\xff\x00";
+
+        memcpy(cpu.mem, mem, sizeof(mem));
+
+        ins->imm    = 1;
+        ins->rd     = 1;
+        ins->rs1    = 2;
+        ins->func3  = LD_FUNC3;
+        ins->opcode = LOAD;
+
+        cpu.regs[ins->rs1] = 3;
+
+        execute_ld(&cpu, (void **)&ins);
+
+        TEST_ASSERT_EQUAL_HEX64(*(uint64_t *)(mem + 3 + 1), cpu.regs[1]);
+        TEST_ASSERT_NULL(ins);
+        TEST_ASSERT_EQUAL(0, cpu.i_flags.pc_updated);
+    }
+}
+
+void test_execute_lw()
+{
+    {
+        struct decoded_rv64_base_ins_i *ins = calloc(1, sizeof(*ins));
+        struct rv64_cpu cpu                 = {0};
+        init_rv64_cpu(&cpu, NULL);
+
+        // WARNING: little endian dependent test
+        char mem[] =
+            "\x11\x22\x33\x44\x55\x66\x77\x88\x99\xaa\xbb\xcc\xdd\xee\xff\x00";
+
+        memcpy(cpu.mem, mem, sizeof(mem));
+
+        ins->imm    = 1;
+        ins->rd     = 1;
+        ins->rs1    = 2;
+        ins->func3  = LW_FUNC3;
+        ins->opcode = LOAD;
+
+        cpu.regs[ins->rs1] = 10;
+
+        execute_lw(&cpu, (void **)&ins);
+
+        uint64_t expected = sign_extend_u32_to_u64(*(uint32_t *)(mem + 10 + 1));
+        TEST_ASSERT_EQUAL_HEX64(expected, cpu.regs[1]);
+        TEST_ASSERT_NULL(ins);
+        TEST_ASSERT_EQUAL(0, cpu.i_flags.pc_updated);
+    }
+}
+
+void test_execute_lwu()
+{
+    struct decoded_rv64_base_ins_i *ins = calloc(1, sizeof(*ins));
+    struct rv64_cpu cpu                 = {0};
+    init_rv64_cpu(&cpu, NULL);
+
+    // WARNING: little endian dependent test
+    char mem[] =
+        "\x11\x22\x33\x44\x55\x66\x77\x88\x99\xaa\xbb\xcc\xdd\xee\xff\x00";
+
+    memcpy(cpu.mem, mem, sizeof(mem));
+
+    ins->imm    = 1;
+    ins->rd     = 1;
+    ins->rs1    = 2;
+    ins->func3  = LWU_FUNC3;
+    ins->opcode = LOAD;
+
+    cpu.regs[ins->rs1] = 10;
+
+    execute_lwu(&cpu, (void **)&ins);
+
+    uint64_t expected = (*(uint32_t *)(mem + 10 + 1));
+    TEST_ASSERT_EQUAL_HEX64(expected, cpu.regs[1]);
+    TEST_ASSERT_NULL(ins);
+    TEST_ASSERT_EQUAL(0, cpu.i_flags.pc_updated);
+}
+
+void test_execute_lh()
+{
+    {
+        struct decoded_rv64_base_ins_i *ins = calloc(1, sizeof(*ins));
+        struct rv64_cpu cpu                 = {0};
+        init_rv64_cpu(&cpu, NULL);
+
+        // WARNING: little endian dependent test
+        char mem[] =
+            "\x11\x22\x33\x44\x55\x66\x77\x88\x99\xaa\xbb\xcc\xdd\xee\xff\x00";
+
+        memcpy(cpu.mem, mem, sizeof(mem));
+
+        ins->imm    = 3;
+        ins->rd     = 1;
+        ins->rs1    = 2;
+        ins->func3  = LH_FUNC3;
+        ins->opcode = LOAD;
+
+        cpu.regs[ins->rs1] = 10;
+
+        execute_lh(&cpu, (void **)&ins);
+
+        uint64_t expected = sign_extend_u16_to_u64(*(uint16_t *)(mem + 10 + 3));
+        TEST_ASSERT_EQUAL_HEX64(expected, cpu.regs[1]);
+        TEST_ASSERT_NULL(ins);
+        TEST_ASSERT_EQUAL(0, cpu.i_flags.pc_updated);
+    }
+}
+
+void test_execute_lhu()
+{
+    {
+        struct decoded_rv64_base_ins_i *ins = calloc(1, sizeof(*ins));
+        struct rv64_cpu cpu                 = {0};
+        init_rv64_cpu(&cpu, NULL);
+
+        // WARNING: little endian dependent test
+        char mem[] =
+            "\x11\x22\x33\x44\x55\x66\x77\x88\x99\xaa\xbb\xcc\xdd\xee\xff\x00";
+
+        memcpy(cpu.mem, mem, sizeof(mem));
+
+        ins->imm    = 3;
+        ins->rd     = 1;
+        ins->rs1    = 2;
+        ins->func3  = LHU_FUNC3;
+        ins->opcode = LOAD;
+
+        cpu.regs[ins->rs1] = 10;
+
+        execute_lhu(&cpu, (void **)&ins);
+
+        uint64_t expected = (*(uint16_t *)(mem + 10 + 3));
+        TEST_ASSERT_EQUAL_HEX64(expected, cpu.regs[1]);
+        TEST_ASSERT_NULL(ins);
+        TEST_ASSERT_EQUAL(0, cpu.i_flags.pc_updated);
+    }
+}
+
+void test_execute_lb()
+{
+    {
+        struct decoded_rv64_base_ins_i *ins = calloc(1, sizeof(*ins));
+        struct rv64_cpu cpu                 = {0};
+        init_rv64_cpu(&cpu, NULL);
+
+        // WARNING: little endian dependent test
+        char mem[] =
+            "\x11\x22\x33\x44\x55\x66\x77\x88\x99\xaa\xbb\xcc\xdd\xee\xff\x00";
+
+        memcpy(cpu.mem, mem, sizeof(mem));
+
+        ins->imm    = 4;
+        ins->rd     = 1;
+        ins->rs1    = 2;
+        ins->func3  = LBU_FUNC3;
+        ins->opcode = LOAD;
+
+        cpu.regs[ins->rs1] = 10;
+
+        execute_lb(&cpu, (void **)&ins);
+
+        uint64_t expected = sign_extend_u8_to_u64(*(uint8_t *)(mem + 10 + 4));
+        TEST_ASSERT_EQUAL_HEX64(expected, cpu.regs[1]);
+        TEST_ASSERT_NULL(ins);
+        TEST_ASSERT_EQUAL(0, cpu.i_flags.pc_updated);
+    }
+}
+
+void test_execute_lbu()
+{
+    {
+        struct decoded_rv64_base_ins_i *ins = calloc(1, sizeof(*ins));
+        struct rv64_cpu cpu                 = {0};
+        init_rv64_cpu(&cpu, NULL);
+
+        // WARNING: little endian dependent test
+        char mem[] =
+            "\x11\x22\x33\x44\x55\x66\x77\x88\x99\xaa\xbb\xcc\xdd\xee\xff\x00";
+
+        memcpy(cpu.mem, mem, sizeof(mem));
+
+        ins->imm    = 4;
+        ins->rd     = 1;
+        ins->rs1    = 2;
+        ins->func3  = LBU_FUNC3;
+        ins->opcode = LOAD;
+
+        cpu.regs[ins->rs1] = 10;
+
+        execute_lbu(&cpu, (void **)&ins);
+
+        uint64_t expected = (*(uint8_t *)(mem + 10 + 4));
+        TEST_ASSERT_EQUAL_HEX64(expected, cpu.regs[1]);
+        TEST_ASSERT_NULL(ins);
+        TEST_ASSERT_EQUAL(0, cpu.i_flags.pc_updated);
+    }
+}
+
+void test_execute_sd()
+{
+    {
+        struct decoded_rv64_base_ins_s *ins = calloc(1, sizeof(*ins));
+        struct rv64_cpu cpu                 = {0};
+        init_rv64_cpu(&cpu, NULL);
+
+        // WARNING: little endian dependent test
+        char mem[] =
+            "\x11\x22\x33\x44\x55\x66\x77\x88\x99\xaa\xbb\xcc\xdd\xee\xff\x00";
+
+        memcpy(cpu.mem, mem, sizeof(mem));
+
+        ins->imm    = 0;
+        ins->rs1    = 1;
+        ins->rs2    = 2;
+        ins->func3  = SD_FUNC3;
+        ins->opcode = STORE;
+
+        cpu.regs[ins->rs1] = 4;
+        cpu.regs[ins->rs2] = 0;
+
+        execute_sd(&cpu, (void **)&ins);
+
+        uint64_t got = 0;
+        read_mem64(&cpu, 4, &got);
+        TEST_ASSERT_EQUAL_HEX64(0, got);
+        TEST_ASSERT_NULL(ins);
+        TEST_ASSERT_EQUAL(0, cpu.i_flags.pc_updated);
+    }
+}
+
+void test_execute_sw()
+{
+    {
+        struct decoded_rv64_base_ins_s *ins = calloc(1, sizeof(*ins));
+        struct rv64_cpu cpu                 = {0};
+        init_rv64_cpu(&cpu, NULL);
+
+        // WARNING: little endian dependent test
+        char mem[] =
+            "\x11\x22\x33\x44\x55\x66\x77\x88\x99\xaa\xbb\xcc\xdd\xee\xff\x00";
+
+        memcpy(cpu.mem, mem, sizeof(mem));
+
+        ins->imm    = 0;
+        ins->rs1    = 1;
+        ins->rs2    = 2;
+        ins->func3  = SW_FUNC3;
+        ins->opcode = STORE;
+
+        cpu.regs[ins->rs1] = 4;
+        cpu.regs[ins->rs2] = 0xff'ff'ff'ff'00'00'00'00;
+
+        execute_sw(&cpu, (void **)&ins);
+
+        uint32_t got = 0;
+        read_mem32(&cpu, 4, &got);
+        TEST_ASSERT_EQUAL_HEX64(0, got);
+        TEST_ASSERT_NULL(ins);
+        TEST_ASSERT_EQUAL(0, cpu.i_flags.pc_updated);
+    }
+}
+
+void test_execute_sh()
+{
+    {
+        struct decoded_rv64_base_ins_s *ins = calloc(1, sizeof(*ins));
+        struct rv64_cpu cpu                 = {0};
+        init_rv64_cpu(&cpu, NULL);
+
+        // WARNING: little endian dependent test
+        char mem[] =
+            "\x11\x22\x33\x44\x55\x66\x77\x88\x99\xaa\xbb\xcc\xdd\xee\xff\x00";
+
+        memcpy(cpu.mem, mem, sizeof(mem));
+
+        ins->imm    = 0;
+        ins->rs1    = 1;
+        ins->rs2    = 2;
+        ins->func3  = SH_FUNC3;
+        ins->opcode = STORE;
+
+        cpu.regs[ins->rs1] = 4;
+        cpu.regs[ins->rs2] = 0xff'ff'ff'ff'ff'ff'00'00;
+
+        execute_sh(&cpu, (void **)&ins);
+
+        uint16_t got = 0;
+        read_mem16(&cpu, 4, &got);
+        TEST_ASSERT_EQUAL_HEX64(0, got);
+        TEST_ASSERT_NULL(ins);
+        TEST_ASSERT_EQUAL(0, cpu.i_flags.pc_updated);
+    }
+}
+
+void test_execute_sb()
+{
+    {
+        struct decoded_rv64_base_ins_s *ins = calloc(1, sizeof(*ins));
+        struct rv64_cpu cpu                 = {0};
+        init_rv64_cpu(&cpu, NULL);
+
+        // WARNING: little endian dependent test
+        char mem[] =
+            "\x11\x22\x33\x44\x55\x66\x77\x88\x99\xaa\xbb\xcc\xdd\xee\xff\x00";
+
+        memcpy(cpu.mem, mem, sizeof(mem));
+
+        ins->imm    = 0;
+        ins->rs1    = 1;
+        ins->rs2    = 2;
+        ins->func3  = SB_FUNC3;
+        ins->opcode = STORE;
+
+        cpu.regs[ins->rs1] = 4;
+        cpu.regs[ins->rs2] = 0xff'ff'ff'ff'ff'ff'ff'00;
+
+        execute_sb(&cpu, (void **)&ins);
+
+        uint8_t got = 0;
+        read_mem8(&cpu, 4, &got);
+        TEST_ASSERT_EQUAL_HEX64(0, got);
+        TEST_ASSERT_NULL(ins);
+        TEST_ASSERT_EQUAL(0, cpu.i_flags.pc_updated);
+    }
+}
+
 int main(void)
 {
     UNITY_BEGIN();
@@ -1308,10 +1643,24 @@ int main(void)
     RUN_TEST(test_execute_bge);
     RUN_TEST(test_execute_bgeu);
 
+    RUN_TEST(test_execute_ld);
+    RUN_TEST(test_execute_lw);
+    RUN_TEST(test_execute_lwu);
+    RUN_TEST(test_execute_lh);
+    RUN_TEST(test_execute_lhu);
+    RUN_TEST(test_execute_lb);
+    RUN_TEST(test_execute_lbu);
+
+    RUN_TEST(test_execute_sd);
+    RUN_TEST(test_execute_sw);
+    RUN_TEST(test_execute_sh);
+    RUN_TEST(test_execute_sb);
+
     RUN_TEST(test_read_mem_rw);
     RUN_TEST(test_fetch);
 
     RUN_TEST(test_execution_handlers_table);
+
     return UNITY_END();
 }
 
