@@ -1232,13 +1232,13 @@ void test_fetch()
 void test_execution_handlers_table()
 {
     {
-        //add
+        //sll
         struct decoded_rv64_base_ins_r *ins = calloc(1, sizeof(*ins));
         struct rv64_cpu cpu                 = {0};
         init_rv64_cpu(&cpu, NULL);
 
-        ins->func3  = ADD_FUNC3;
-        ins->opcode = ADD_FUNC7;
+        ins->func3  = SLL_FUNC3;
+        ins->func7  = SLL_FUNC7;
         ins->opcode = OP;
         ins->rd     = 3;
         ins->rs1    = 1;
@@ -1251,7 +1251,7 @@ void test_execution_handlers_table()
         execution_handlers[ins->opcode][ins->func3][ins->func7](
             &cpu, (void **)&ins);
 
-        TEST_ASSERT_EQUAL(12, cpu.regs[3]);
+        TEST_ASSERT_EQUAL(2 << 10, cpu.regs[3]);
         TEST_ASSERT_NULL(ins);
         TEST_ASSERT_EQUAL(0, cpu.i_flags.pc_updated);
     }
