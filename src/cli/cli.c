@@ -102,16 +102,10 @@ void handle_args(int argc, char **argv)
 
 int main(int argc, char **argv)
 {
-    FILE *program_file            = NULL;
-    struct rv64_cpu cpu           = {0};
-    char cpy_buff[BUFSIZ]         = {0};
-    uint64_t program_file_size    = 0;
-    size_t total_read_bytes       = 0;
-    size_t current_read_bytes     = -1;
-    size_t free_memory_in_machine = 0;
-    size_t bytes_to_write         = 0;
-    int err                       = 0;
-    struct cpu_opt c_opt          = {
+    FILE *program_file   = NULL;
+    struct rv64_cpu cpu  = {0};
+    int err              = 0;
+    struct cpu_opt c_opt = {
         .mem_size = BASE_MEM_SIZE,
         .regs     = BASE_REGS_NUM,
     };
@@ -132,31 +126,14 @@ int main(int argc, char **argv)
     }
     logger(LOG_DEBUG, stdout, "init cpu success\n");
 
-    free_memory_in_machine = cpu.opt.mem_size;
+    (void)fread(cpu.mem, 1, cpu.opt.mem_size, program_file);
 
-    while(current_read_bytes && free_memory_in_machine) {
-        // the last iteration has no effect, since we
-        // do fread on a EOF stream, current_read_bytes becomes 0,
-        // and that enables us to detect "not enough memory" case
-        // NOLINTNEXTLINE(clang-analyzer-unix.Stream)
-        current_read_bytes = fread(cpy_buff, 1, BUFSIZ, program_file);
-
-        if(ferror(program_file)) {
-            puts(strerror(errno));
-            exit(1);
-        }
-
-        bytes_to_write = current_read_bytes < free_memory_in_machine
-                             ? current_read_bytes
-                             : free_memory_in_machine;
-
-        memcpy(cpu.mem + total_read_bytes, cpy_buff, bytes_to_write);
-
-        total_read_bytes += current_read_bytes;
-        free_memory_in_machine -= bytes_to_write;
+    if(ferror(program_file)) {
+        puts(strerror(errno));
+        exit(1);
     }
 
-    if(current_read_bytes) {
+    if(!feof(program_file)) {
         long end_of_file = 0;
         (void)fseek(program_file, 0, SEEK_END);
         end_of_file = ftell(program_file);
