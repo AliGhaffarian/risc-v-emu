@@ -6,7 +6,8 @@ Checks: >
   clang-analyzer-*,
   performance-*,
   readability-*,
-  -llvmlibc-*
+  -llvmlibc-*,
+  -clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling
 
 WarningsAsErrors: >
   clang-analyzer-unix.MallocSizeof

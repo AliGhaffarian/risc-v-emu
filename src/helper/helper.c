@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-void freep(void *ptr)
+void freep(void *_Nonnull ptr)
 {
     void **ptrptr = (void **)ptr;
     free(*ptrptr);
@@ -27,9 +27,12 @@ uint64_t bitmask_from_bit_size(uint64_t bit_size)
     return ret;
 }
 
+// NOLINTBEGIN(bugprone-easily-swappable-parameters)
 uint64_t
 extract_bits_from_uint64(uint64_t num, uint64_t start, uint64_t bitmask)
+// NOLINTEND(bugprone-easily-swappable-parameters)
 {
+
     uint64_t ret = 0;
 
     ret = num >> start;
@@ -39,7 +42,9 @@ extract_bits_from_uint64(uint64_t num, uint64_t start, uint64_t bitmask)
     return ret;
 }
 
+// NOLINTBEGIN(bugprone-easily-swappable-parameters)
 uint64_t repeat_bit_in_num(uint64_t num, uint8_t start, uint8_t bit)
+// NOLINTEND(bugprone-easily-swappable-parameters)
 {
 
     // NOLINTNEXTLINE(readability-magic-numbers)

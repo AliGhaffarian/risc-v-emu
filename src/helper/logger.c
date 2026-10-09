@@ -1,8 +1,8 @@
+// NOLINTNEXTLINE(bugprone-reserved-identifier,cert-dcl37-c,cert-dcl51-cpp)
 #define _GNU_SOURCE
 #include "logger.h"
 #include <dlfcn.h>
 #include <string.h>
-
 volatile int current_log_level = LOG_INFO;
 
 const char *LOG_LEVELS2STR[] = {

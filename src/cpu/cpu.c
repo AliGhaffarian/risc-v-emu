@@ -256,12 +256,15 @@ void __attribute__((constructor())) init_execution_handlers(void)
     // func3 = CSRRCI_FUNC3; register_execution_handler(SYSTEM, NULL, &func3, execute_csrrci);
 }
 
+static const uint8_t i_imm1_encoded_bitpos = 20;
+static const uint8_t i_imm1_size_bits      = 12;
 uint64_t decode_imm_i(rv64_instruction_t ins)
 {
-    uint64_t ret     = 0;
-    uint8_t sign_bit = ins >> (RV64_INS_LEN - 1);
+    uint64_t ret                  = 0;
+    uint8_t sign_bit              = GET_SIGN_BIT(ins);
+    const uint64_t i_imm1_bitmask = bitmask_from_bit_size(i_imm1_size_bits);
 
-    ret = ins >> 20;
+    ret = extract_bits_from_uint64(ins, i_imm1_encoded_bitpos, i_imm1_bitmask);
 
     ret = repeat_bit_in_num(ret, IMM_I_SIZE_BITS, sign_bit);
 
@@ -635,8 +638,11 @@ void free_rv64_cpu(struct rv64_cpu *_Nonnull cpu)
     assert(cpu);
 
     free(cpu->regs);
+    //NOLINTNEXTLINE(clang-analyzer-nullability.NullPassedToNonnull)
     cpu->regs = NULL;
+
     free(cpu->mem);
+    //NOLINTNEXTLINE(clang-analyzer-nullability.NullPassedToNonnull)
     cpu->mem = NULL;
 }
 
@@ -1437,12 +1443,13 @@ int read_mem64(
     return INTERNAL_MEM_READ_UINT_TYPED(cpu, address, ret);
 }
 
-// NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
+// NOLINTBEGIN(bugprone-easily-swappable-parameters)
 int write_mem(
     struct rv64_cpu *_Nonnull cpu,
     uint64_t address,
     uint64_t length,
     uint64_t write)
+// NOLINTEND(bugprone-easily-swappable-parameters)
 {
     assert(cpu);
 

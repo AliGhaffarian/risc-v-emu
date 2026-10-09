@@ -2,7 +2,7 @@
 
 #include <stdint.h>
 
-void freep(void *ptr);
+void freep(void *_Nonnull ptr);
 
 #define _cleanup_free_ __attribute__((__cleanup__(freep)))
 

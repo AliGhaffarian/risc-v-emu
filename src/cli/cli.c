@@ -22,8 +22,8 @@ struct args_struct args = {
     .log_level    = LOG_INFO,
 };
 
-char *usage_help =
-    "usage: rv_emu -l[og-level] LOG_LEVEL -p[rogram-file] PROGRAM_FILENAME";
+char *usage_help = "usage: rv_emu -l[og-level] LOG_LEVEL -m[mem-size] "
+                   "BASE10_MEMSIZE -p[rogram-file] PROGRAM_FILENAME";
 
 struct option long_options[] = {
     {.name    = "program-file",
@@ -71,6 +71,9 @@ void handle_args(int argc, char **argv)
             required_args--;
             break;
         case 'm':
+            // TODO: parse hex and binary formats
+
+            // NOLINTNEXTLINE
             args.mem_size = strtoul(optarg, NULL, 10);
             if(errno) {
                 printf("invalid mem size: %s", optarg);
@@ -132,7 +135,16 @@ int main(int argc, char **argv)
     free_memory_in_machine = cpu.opt.mem_size;
 
     while(current_read_bytes && free_memory_in_machine) {
+        // the last iteration has no effect, since we
+        // do fread on a EOF stream, current_read_bytes becomes 0,
+        // and that enables us to detect "not enough memory" case
+        // NOLINTNEXTLINE(clang-analyzer-unix.Stream)
         current_read_bytes = fread(cpy_buff, 1, BUFSIZ, program_file);
+
+        if(ferror(program_file)) {
+            puts(strerror(errno));
+            exit(1);
+        }
 
         bytes_to_write = current_read_bytes < free_memory_in_machine
                              ? current_read_bytes
@@ -146,12 +158,14 @@ int main(int argc, char **argv)
 
     if(current_read_bytes) {
         long end_of_file = 0;
-        fseek(program_file, 0, SEEK_END);
+        (void)fseek(program_file, 0, SEEK_END);
         end_of_file = ftell(program_file);
         printf("not enough memory in machine, need %lu bytes", end_of_file);
         debug_dump_cpu(&cpu);
         exit(1);
     }
+
+    (void)fclose(program_file);
 
     mainloop_rv64_cpu(&cpu);
     debug_dump_cpu(&cpu);
