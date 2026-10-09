@@ -347,7 +347,7 @@ uint64_t decode_imm_u(rv64_instruction_t ins)
 
     ret = (imm1 << u_imm1_real_bitpos);
 
-    return ret;
+    return sign_extend_u32_to_u64(ret);
 }
 
 static const uint8_t j_imm1_size_bits      = 8;

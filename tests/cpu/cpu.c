@@ -18,7 +18,7 @@ void tearDown(void)
 void test_decode_imm_u(void)
 {
     uint64_t got = decode_imm_u(0xf1'f1'af'ff);
-    TEST_ASSERT_EQUAL_HEX64(0xf1'f1'a0'00, got);
+    TEST_ASSERT_EQUAL_HEX64(0xff'ff'ff'ff'f1'f1'a0'00, got);
 }
 void test_decode_imm_j(void)
 {
