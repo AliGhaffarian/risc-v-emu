@@ -16,6 +16,18 @@ uint64_t sign_extend_u32_to_u64(uint32_t num)
     return repeat_bit_in_num(num, 32, GET_SIGN_BIT(num));
 }
 
+uint64_t sign_extend_u16_to_u64(uint32_t num)
+{
+    // NOLINTNEXTLINE(readability-magic-numbers)
+    return repeat_bit_in_num(num, 16, GET_SIGN_BIT(num));
+}
+
+uint64_t sign_extend_u8_to_u64(uint32_t num)
+{
+    // NOLINTNEXTLINE(readability-magic-numbers)
+    return repeat_bit_in_num(num, 8, GET_SIGN_BIT(num));
+}
+
 uint64_t bitmask_from_bit_size(uint64_t bit_size)
 {
     uint64_t ret = 0;

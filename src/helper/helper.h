@@ -16,6 +16,8 @@ void freep(void *_Nonnull ptr);
     })
 
 uint64_t sign_extend_u32_to_u64(uint32_t num);
+uint64_t sign_extend_u16_to_u64(uint32_t num);
+uint64_t sign_extend_u8_to_u64(uint32_t num);
 
 uint64_t bitmask_from_bit_size(uint64_t bit_size);
 uint64_t
