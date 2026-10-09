@@ -517,3 +517,6 @@ void register_execution_handler(
     const int *_Nullable func3,
     void (*_Nonnull handler)(
         struct rv64_cpu *_Nonnull, void *_Nonnull *_Nonnull));
+
+void set_general_purpose_register(
+    struct rv64_cpu *_Nonnull cpu, uint64_t reg_inx, uint64_t value);

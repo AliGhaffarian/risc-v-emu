@@ -676,8 +676,7 @@ void step_rv64_cpu(struct rv64_cpu *_Nonnull cpu)
     void (*execution_handler)(
         struct rv64_cpu *_Nonnull cpu, void *_Nonnull *_Nonnull vdecoded_ins);
     fetch(cpu, &current_instruction);
-    logger(
-        LOG_DEBUG, stdout, "fetched instruction: %x\n", current_instruction);
+    logger(LOG_DEBUG, stdout, "fetched instruction: %x\n", current_instruction);
 
     opcode = decode_opcode(current_instruction);
     logger(LOG_DEBUG, stdout, "opcode: %x\n", opcode);
@@ -715,7 +714,8 @@ void execute_addi(
     _cleanup_free_ struct decoded_rv64_base_ins_i *decoded_ins =
         MOVE(vdecoded_ins_i);
 
-    cpu->regs[decoded_ins->rd] = cpu->regs[decoded_ins->rs1] + decoded_ins->imm;
+    set_general_purpose_register(
+        cpu, decoded_ins->rd, cpu->regs[decoded_ins->rs1] + decoded_ins->imm);
 }
 
 void execute_addiw(
@@ -731,7 +731,8 @@ void execute_addiw(
     uint32_t rs1_lower = cpu->regs[decoded_ins->rs1];
     rs1_lower += (uint32_t)decoded_ins->imm;
 
-    cpu->regs[decoded_ins->rd] = sign_extend_u32_to_u64(rs1_lower);
+    set_general_purpose_register(
+        cpu, decoded_ins->rd, sign_extend_u32_to_u64(rs1_lower));
 }
 
 void execute_slti(
@@ -744,9 +745,11 @@ void execute_slti(
     _cleanup_free_ struct decoded_rv64_base_ins_i *decoded_ins =
         MOVE(vdecoded_ins_i);
 
-    cpu->regs[decoded_ins->rd] =
+    set_general_purpose_register(
+        cpu,
+        decoded_ins->rd,
         (int64_t)cpu->regs[decoded_ins->rs1] < (int64_t)decoded_ins->imm ? 1
-                                                                         : 0;
+                                                                         : 0);
 }
 
 void execute_sltiu(
@@ -759,8 +762,10 @@ void execute_sltiu(
     _cleanup_free_ struct decoded_rv64_base_ins_i *decoded_ins =
         MOVE(vdecoded_ins_i);
 
-    cpu->regs[decoded_ins->rd] =
-        cpu->regs[decoded_ins->rs1] < decoded_ins->imm ? 1 : 0;
+    set_general_purpose_register(
+        cpu,
+        decoded_ins->rd,
+        cpu->regs[decoded_ins->rs1] < decoded_ins->imm ? 1 : 0);
 }
 
 void execute_andi(
@@ -773,7 +778,8 @@ void execute_andi(
     _cleanup_free_ struct decoded_rv64_base_ins_i *decoded_ins =
         MOVE(vdecoded_ins_i);
 
-    cpu->regs[decoded_ins->rd] = cpu->regs[decoded_ins->rs1] & decoded_ins->imm;
+    set_general_purpose_register(
+        cpu, decoded_ins->rd, cpu->regs[decoded_ins->rs1] & decoded_ins->imm);
 }
 
 void execute_ori(
@@ -786,7 +792,8 @@ void execute_ori(
     _cleanup_free_ struct decoded_rv64_base_ins_i *decoded_ins =
         MOVE(vdecoded_ins_i);
 
-    cpu->regs[decoded_ins->rd] = cpu->regs[decoded_ins->rs1] | decoded_ins->imm;
+    set_general_purpose_register(
+        cpu, decoded_ins->rd, cpu->regs[decoded_ins->rs1] | decoded_ins->imm);
 }
 
 void execute_xori(
@@ -800,7 +807,8 @@ void execute_xori(
     _cleanup_free_ struct decoded_rv64_base_ins_i *decoded_ins =
         MOVE(vdecoded_ins_i);
 
-    cpu->regs[decoded_ins->rd] = cpu->regs[decoded_ins->rs1] ^ decoded_ins->imm;
+    set_general_purpose_register(
+        cpu, decoded_ins->rd, cpu->regs[decoded_ins->rs1] ^ decoded_ins->imm);
 }
 
 void execute_slli(
@@ -815,8 +823,10 @@ void execute_slli(
     uint8_t shamt =
         decoded_ins->imm & bitmask_from_bit_size(SHIFT_SHAMT_BIT_SIZE);
 
-    cpu->regs[decoded_ins->rd] = cpu->regs[decoded_ins->rs1] << shamt;
+    set_general_purpose_register(
+        cpu, decoded_ins->rd, cpu->regs[decoded_ins->rs1] << shamt);
 }
+
 void execute_slliw(
     struct rv64_cpu *_Nonnull cpu, void *_Nonnull *_Nonnull vdecoded_ins_i)
 {
@@ -829,9 +839,9 @@ void execute_slliw(
     uint8_t shamt =
         decoded_ins->imm & bitmask_from_bit_size(SHIFTW_SHAMT_BIT_SIZE);
     uint32_t rs1_lower = ((uint32_t)cpu->regs[decoded_ins->rs1]);
-    uint8_t sign_bit   = GET_SIGN_BIT(rs1_lower);
 
-    cpu->regs[decoded_ins->rd] = sign_extend_u32_to_u64(rs1_lower << shamt);
+    set_general_purpose_register(
+        cpu, decoded_ins->rd, sign_extend_u32_to_u64(rs1_lower << shamt));
 }
 
 void execute_srlai(
@@ -861,7 +871,8 @@ void execute_srli(
 {
     uint8_t shamt =
         decoded_ins->imm & bitmask_from_bit_size(SHIFT_SHAMT_BIT_SIZE);
-    cpu->regs[decoded_ins->rd] = cpu->regs[decoded_ins->rs1] >> shamt;
+    set_general_purpose_register(
+        cpu, decoded_ins->rd, cpu->regs[decoded_ins->rs1] >> shamt);
 }
 
 void execute_srai(
@@ -874,11 +885,13 @@ void execute_srai(
     uint64_t sign_bit =
         ((uint64_t)1 << (XLEN - 1)) & cpu->regs[decoded_ins->rs1];
 
-    cpu->regs[decoded_ins->rd] = cpu->regs[decoded_ins->rs1];
+    uint64_t val = cpu->regs[decoded_ins->rs1];
     for(int i = 0; i < shamt; i++) {
-        cpu->regs[decoded_ins->rd] = cpu->regs[decoded_ins->rd] >> 1;
-        cpu->regs[decoded_ins->rd] |= sign_bit;
+        val = val >> 1;
+        val |= sign_bit;
     }
+
+    set_general_purpose_register(cpu, decoded_ins->rd, val);
 }
 
 void execute_srlaiw(
@@ -908,8 +921,9 @@ void execute_srliw(
 {
     uint8_t shamt =
         decoded_ins->imm & bitmask_from_bit_size(SHIFTW_SHAMT_BIT_SIZE);
-    uint32_t lower_rs1         = cpu->regs[decoded_ins->rs1];
-    cpu->regs[decoded_ins->rd] = sign_extend_u32_to_u64(lower_rs1 >> shamt);
+    uint32_t lower_rs1 = cpu->regs[decoded_ins->rs1];
+    set_general_purpose_register(
+        cpu, decoded_ins->rd, sign_extend_u32_to_u64(lower_rs1 >> shamt));
 }
 
 void execute_sraiw(
@@ -927,7 +941,8 @@ void execute_sraiw(
         lower_rs1 |= sign_bit;
     }
 
-    cpu->regs[decoded_ins->rd] = sign_extend_u32_to_u64(lower_rs1);
+    set_general_purpose_register(
+        cpu, decoded_ins->rd, sign_extend_u32_to_u64(lower_rs1));
 }
 
 void execute_lui(
@@ -940,7 +955,7 @@ void execute_lui(
     _cleanup_free_ struct decoded_rv64_base_ins_u *decoded_ins =
         MOVE(vdecoded_ins_u);
 
-    cpu->regs[decoded_ins->rd] = decoded_ins->imm;
+    set_general_purpose_register(cpu, decoded_ins->rd, decoded_ins->imm);
 }
 
 void execute_auipc(
@@ -953,7 +968,8 @@ void execute_auipc(
     _cleanup_free_ struct decoded_rv64_base_ins_u *decoded_ins =
         MOVE(vdecoded_ins_u);
 
-    cpu->regs[decoded_ins->rd] = decoded_ins->imm + cpu->regs[REG_INX_PC];
+    set_general_purpose_register(
+        cpu, decoded_ins->rd, decoded_ins->imm + cpu->regs[REG_INX_PC]);
 }
 
 void execute_add(
@@ -966,8 +982,10 @@ void execute_add(
     _cleanup_free_ struct decoded_rv64_base_ins_r *decoded_ins =
         MOVE(vdecoded_ins_r);
 
-    cpu->regs[decoded_ins->rd] =
-        cpu->regs[decoded_ins->rs1] + cpu->regs[decoded_ins->rs2];
+    set_general_purpose_register(
+        cpu,
+        decoded_ins->rd,
+        cpu->regs[decoded_ins->rs1] + cpu->regs[decoded_ins->rs2]);
 }
 
 void execute_sub(
@@ -980,8 +998,10 @@ void execute_sub(
     _cleanup_free_ struct decoded_rv64_base_ins_r *decoded_ins =
         MOVE(vdecoded_ins_r);
 
-    cpu->regs[decoded_ins->rd] =
-        cpu->regs[decoded_ins->rs1] - cpu->regs[decoded_ins->rs2];
+    set_general_purpose_register(
+        cpu,
+        decoded_ins->rd,
+        cpu->regs[decoded_ins->rs1] - cpu->regs[decoded_ins->rs2]);
 }
 
 void execute_slt(
@@ -994,10 +1014,13 @@ void execute_slt(
     _cleanup_free_ struct decoded_rv64_base_ins_r *decoded_ins =
         MOVE(vdecoded_ins_r);
 
-    cpu->regs[decoded_ins->rd] = (int64_t)cpu->regs[decoded_ins->rs1] <
-                                         (int64_t)cpu->regs[decoded_ins->rs2]
-                                     ? 1
-                                     : 0;
+    set_general_purpose_register(
+        cpu,
+        decoded_ins->rd,
+        (int64_t)cpu->regs[decoded_ins->rs1] <
+                (int64_t)cpu->regs[decoded_ins->rs2]
+            ? 1
+            : 0);
 }
 
 void execute_sltu(
@@ -1010,8 +1033,10 @@ void execute_sltu(
     _cleanup_free_ struct decoded_rv64_base_ins_r *decoded_ins =
         MOVE(vdecoded_ins_r);
 
-    cpu->regs[decoded_ins->rd] =
-        cpu->regs[decoded_ins->rs1] < cpu->regs[decoded_ins->rs2] ? 1 : 0;
+    set_general_purpose_register(
+        cpu,
+        decoded_ins->rd,
+        cpu->regs[decoded_ins->rs1] < cpu->regs[decoded_ins->rs2] ? 1 : 0);
 }
 
 void execute_and(
@@ -1024,8 +1049,10 @@ void execute_and(
     _cleanup_free_ struct decoded_rv64_base_ins_r *decoded_ins =
         MOVE(vdecoded_ins_r);
 
-    cpu->regs[decoded_ins->rd] =
-        cpu->regs[decoded_ins->rs1] & cpu->regs[decoded_ins->rs2];
+    set_general_purpose_register(
+        cpu,
+        decoded_ins->rd,
+        cpu->regs[decoded_ins->rs1] & cpu->regs[decoded_ins->rs2]);
 }
 
 void execute_or(
@@ -1038,8 +1065,10 @@ void execute_or(
     _cleanup_free_ struct decoded_rv64_base_ins_r *decoded_ins =
         MOVE(vdecoded_ins_r);
 
-    cpu->regs[decoded_ins->rd] =
-        cpu->regs[decoded_ins->rs1] | cpu->regs[decoded_ins->rs2];
+    set_general_purpose_register(
+        cpu,
+        decoded_ins->rd,
+        cpu->regs[decoded_ins->rs1] | cpu->regs[decoded_ins->rs2]);
 }
 
 void execute_xor(
@@ -1052,8 +1081,10 @@ void execute_xor(
     _cleanup_free_ struct decoded_rv64_base_ins_r *decoded_ins =
         MOVE(vdecoded_ins_r);
 
-    cpu->regs[decoded_ins->rd] =
-        cpu->regs[decoded_ins->rs1] ^ cpu->regs[decoded_ins->rs2];
+    set_general_purpose_register(
+        cpu,
+        decoded_ins->rd,
+        cpu->regs[decoded_ins->rs1] ^ cpu->regs[decoded_ins->rs2]);
 }
 
 void execute_jal(
@@ -1066,9 +1097,10 @@ void execute_jal(
     _cleanup_free_ struct decoded_rv64_base_ins_j *decoded_ins =
         MOVE(vdecoded_ins_j);
 
-    cpu->regs[decoded_ins->rd] = cpu->regs[REG_INX_PC] + 4;
-    cpu->regs[REG_INX_PC] += decoded_ins->imm;
-    cpu->i_flags.pc_updated = 1;
+    set_general_purpose_register(
+        cpu, decoded_ins->rd, cpu->regs[REG_INX_PC] + 4);
+    set_general_purpose_register(
+        cpu, REG_INX_PC, cpu->regs[REG_INX_PC] + decoded_ins->imm);
 }
 
 void execute_jalr(
@@ -1081,14 +1113,13 @@ void execute_jalr(
     _cleanup_free_ struct decoded_rv64_base_ins_i *decoded_ins =
         MOVE(vdecoded_ins_i);
 
-    cpu->regs[decoded_ins->rd] = cpu->regs[REG_INX_PC] + 4;
+    set_general_purpose_register(
+        cpu, decoded_ins->rd, cpu->regs[REG_INX_PC] + 4);
 
-    cpu->regs[REG_INX_PC] = (cpu->regs[decoded_ins->rs1] + decoded_ins->imm);
+    uint64_t target_pc = (cpu->regs[decoded_ins->rs1] + decoded_ins->imm);
+    target_pc          = (target_pc >> 1) << 1;
 
-    cpu->regs[REG_INX_PC] >>= 1;
-    cpu->regs[REG_INX_PC] <<= 1;
-
-    cpu->i_flags.pc_updated = 1;
+    set_general_purpose_register(cpu, REG_INX_PC, target_pc);
 }
 
 void execute_sll(
@@ -1103,7 +1134,8 @@ void execute_sll(
     uint8_t shamt = cpu->regs[decoded_ins->rs2] &
                     bitmask_from_bit_size(SHIFT_SHAMT_BIT_SIZE);
 
-    cpu->regs[decoded_ins->rd] = cpu->regs[decoded_ins->rs1] << shamt;
+    set_general_purpose_register(
+        cpu, decoded_ins->rd, cpu->regs[decoded_ins->rs1] << shamt);
 }
 
 void execute_srla(
@@ -1131,9 +1163,10 @@ void execute_srl(
     struct rv64_cpu *_Nonnull cpu,
     struct decoded_rv64_base_ins_r *_Nonnull decoded_ins)
 {
-    uint8_t shamt              = cpu->regs[decoded_ins->rs2] &
-                                 bitmask_from_bit_size(SHIFT_SHAMT_BIT_SIZE);
-    cpu->regs[decoded_ins->rd] = cpu->regs[decoded_ins->rs1] >> shamt;
+    uint8_t shamt = cpu->regs[decoded_ins->rs2] &
+                    bitmask_from_bit_size(SHIFT_SHAMT_BIT_SIZE);
+    set_general_purpose_register(
+        cpu, decoded_ins->rd, cpu->regs[decoded_ins->rs1] >> shamt);
 }
 
 void execute_sra(
@@ -1145,11 +1178,13 @@ void execute_sra(
 
     uint64_t sign_bit = GET_SIGN_BIT(cpu->regs[decoded_ins->rs1]) << (XLEN - 1);
 
-    cpu->regs[decoded_ins->rd] = cpu->regs[decoded_ins->rs1];
+    uint64_t val = cpu->regs[decoded_ins->rs1];
     for(int i = 0; i < shamt; i++) {
-        cpu->regs[decoded_ins->rd] = cpu->regs[decoded_ins->rd] >> 1;
-        cpu->regs[decoded_ins->rd] |= sign_bit;
+        val = val >> 1;
+        val |= sign_bit;
     }
+
+    set_general_purpose_register(cpu, decoded_ins->rd, val);
 }
 
 void execute_addw(
@@ -1164,7 +1199,8 @@ void execute_addw(
     uint32_t lower_rs1 = cpu->regs[decoded_ins->rs1];
     uint32_t lower_rs2 = cpu->regs[decoded_ins->rs2];
 
-    cpu->regs[decoded_ins->rd] = sign_extend_u32_to_u64(lower_rs1 + lower_rs2);
+    set_general_purpose_register(
+        cpu, decoded_ins->rd, sign_extend_u32_to_u64(lower_rs1 + lower_rs2));
 }
 
 void execute_sllw(
@@ -1180,7 +1216,8 @@ void execute_sllw(
                          bitmask_from_bit_size(SHIFTW_SHAMT_BIT_SIZE);
     uint32_t lower_rs1 = cpu->regs[decoded_ins->rs1];
 
-    cpu->regs[decoded_ins->rd] = sign_extend_u32_to_u64(lower_rs1 << shamt);
+    set_general_purpose_register(
+        cpu, decoded_ins->rd, sign_extend_u32_to_u64(lower_rs1 << shamt));
 }
 
 void execute_srlaw(
@@ -1208,10 +1245,11 @@ void execute_srlw(
     struct rv64_cpu *_Nonnull cpu,
     struct decoded_rv64_base_ins_r *_Nonnull decoded_ins)
 {
-    uint8_t shamt              = cpu->regs[decoded_ins->rs2] &
-                                 bitmask_from_bit_size(SHIFTW_SHAMT_BIT_SIZE);
-    uint32_t lower_rs1         = cpu->regs[decoded_ins->rs1];
-    cpu->regs[decoded_ins->rd] = sign_extend_u32_to_u64(lower_rs1 >> shamt);
+    uint8_t shamt      = cpu->regs[decoded_ins->rs2] &
+                         bitmask_from_bit_size(SHIFTW_SHAMT_BIT_SIZE);
+    uint32_t lower_rs1 = cpu->regs[decoded_ins->rs1];
+    set_general_purpose_register(
+        cpu, decoded_ins->rd, sign_extend_u32_to_u64(lower_rs1 >> shamt));
 }
 
 void execute_sraw(
@@ -1229,7 +1267,8 @@ void execute_sraw(
         lower_rs1 |= sign_bit;
     }
 
-    cpu->regs[decoded_ins->rd] = sign_extend_u32_to_u64(lower_rs1);
+    set_general_purpose_register(
+        cpu, decoded_ins->rd, sign_extend_u32_to_u64(lower_rs1));
 }
 
 void execute_subw(
@@ -1244,7 +1283,8 @@ void execute_subw(
     uint32_t lower_rs1 = cpu->regs[decoded_ins->rs1];
     uint32_t lower_rs2 = cpu->regs[decoded_ins->rs2];
 
-    cpu->regs[decoded_ins->rd] = sign_extend_u32_to_u64(lower_rs1 - lower_rs2);
+    set_general_purpose_register(
+        cpu, decoded_ins->rd, sign_extend_u32_to_u64(lower_rs1 - lower_rs2));
 }
 
 /** TODO: rv64 unprivileged 2.5: The conditional branch instructions will generate an instruction-address-misaligned exception if the
@@ -1262,8 +1302,8 @@ void execute_beq(
         MOVE(vdecoded_ins_b);
 
     if(cpu->regs[decoded_ins->rs1] == cpu->regs[decoded_ins->rs2]) {
-        cpu->regs[REG_INX_PC] += decoded_ins->imm;
-        cpu->i_flags.pc_updated = 1;
+        set_general_purpose_register(
+            cpu, REG_INX_PC, cpu->regs[REG_INX_PC] + decoded_ins->imm);
     }
 }
 
@@ -1278,8 +1318,8 @@ void execute_bne(
         MOVE(vdecoded_ins_b);
 
     if(cpu->regs[decoded_ins->rs1] != cpu->regs[decoded_ins->rs2]) {
-        cpu->regs[REG_INX_PC] += decoded_ins->imm;
-        cpu->i_flags.pc_updated = 1;
+        set_general_purpose_register(
+            cpu, REG_INX_PC, cpu->regs[REG_INX_PC] + decoded_ins->imm);
     }
 }
 
@@ -1295,8 +1335,8 @@ void execute_blt(
 
     if((int64_t)cpu->regs[decoded_ins->rs1] <
        (int64_t)cpu->regs[decoded_ins->rs2]) {
-        cpu->regs[REG_INX_PC] += decoded_ins->imm;
-        cpu->i_flags.pc_updated = 1;
+        set_general_purpose_register(
+            cpu, REG_INX_PC, cpu->regs[REG_INX_PC] + decoded_ins->imm);
     }
 }
 
@@ -1311,8 +1351,8 @@ void execute_bltu(
         MOVE(vdecoded_ins_b);
 
     if(cpu->regs[decoded_ins->rs1] < cpu->regs[decoded_ins->rs2]) {
-        cpu->regs[REG_INX_PC] += decoded_ins->imm;
-        cpu->i_flags.pc_updated = 1;
+        set_general_purpose_register(
+            cpu, REG_INX_PC, cpu->regs[REG_INX_PC] + decoded_ins->imm);
     }
 }
 
@@ -1328,8 +1368,8 @@ void execute_bge(
 
     if((int64_t)cpu->regs[decoded_ins->rs1] >=
        (int64_t)cpu->regs[decoded_ins->rs2]) {
-        cpu->regs[REG_INX_PC] += decoded_ins->imm;
-        cpu->i_flags.pc_updated = 1;
+        set_general_purpose_register(
+            cpu, REG_INX_PC, cpu->regs[REG_INX_PC] + decoded_ins->imm);
     }
 }
 void execute_bgeu(
@@ -1343,8 +1383,8 @@ void execute_bgeu(
         MOVE(vdecoded_ins_b);
 
     if(cpu->regs[decoded_ins->rs1] >= cpu->regs[decoded_ins->rs2]) {
-        cpu->regs[REG_INX_PC] += decoded_ins->imm;
-        cpu->i_flags.pc_updated = 1;
+        set_general_purpose_register(
+            cpu, REG_INX_PC, cpu->regs[REG_INX_PC] + decoded_ins->imm);
     }
 }
 
@@ -1503,4 +1543,21 @@ void register_execution_handler(
             execution_handlers[opcode][i][j] = handler;
         }
     }
+}
+
+void set_general_purpose_register(
+    struct rv64_cpu *_Nonnull cpu, uint64_t reg_inx, uint64_t value)
+{
+    assert(cpu);
+    assert(reg_inx < cpu->opt.regs);
+
+    if(reg_inx == 0) {
+        return;
+    }
+
+    if(reg_inx == REG_INX_PC) {
+        cpu->i_flags.pc_updated = 1;
+    }
+
+    cpu->regs[reg_inx] = value;
 }
