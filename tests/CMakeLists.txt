@@ -17,3 +17,4 @@ set_target_properties(unity PROPERTIES
     INTERFACE_SYSTEM_INCLUDE_DIRECTORIES "${UNITY_INCLUDES}")
 
 add_subdirectory(cpu)
+add_subdirectory(sysbus)
