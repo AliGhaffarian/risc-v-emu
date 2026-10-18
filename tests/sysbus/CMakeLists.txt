@@ -1,0 +1,9 @@
+include_directories(${CMAKE_SOURCE_DIR}/src/sysbus)
+include_directories(${CMAKE_SOURCE_DIR}/src/io_devs)
+include_directories(${CMAKE_SOURCE_DIR}/src/helper)
+
+add_executable(test_sysbus sysbus.c)
+target_link_libraries(test_sysbus unity)
+target_link_libraries(test_sysbus sysbus)
+target_link_libraries(test_sysbus helper)
+add_test(NAME test_sysbus COMMAND test_sysbus)
