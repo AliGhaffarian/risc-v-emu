@@ -677,6 +677,7 @@ int init_rv64_cpu(struct rv64_cpu *_Nonnull cpu, struct cpu_opt *_Nullable opt)
     }
 
     cpu->i_flags.pc_updated = 0;
+    cpu->i_flags.stall      = 0;
 
     return 0;
 }
@@ -1693,6 +1694,9 @@ int fetch(struct rv64_cpu *_Nonnull cpu, rv64_instruction_t *_Nonnull ret_ins)
 
 void advance_pc_or_update_i_flags(struct rv64_cpu *_Nonnull cpu)
 {
+    if(cpu->i_flags.stall) {
+        return;
+    }
     if(cpu->i_flags.pc_updated) {
         cpu->i_flags.pc_updated = 0;
         return;

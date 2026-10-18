@@ -133,6 +133,7 @@ struct cpu_opt {
 
 struct internal_flags {
     uint8_t pc_updated; // was previous instructino a branch or jump?
+    uint8_t stall;
 };
 
 struct rv64_cpu {
