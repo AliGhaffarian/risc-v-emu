@@ -18,3 +18,4 @@ set_target_properties(unity PROPERTIES
 
 add_subdirectory(cpu)
 add_subdirectory(sysbus)
+add_subdirectory(io_devs)

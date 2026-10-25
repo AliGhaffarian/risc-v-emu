@@ -1,0 +1,5 @@
+add_executable(test_io_dev_memory io_dev_memory.c)
+target_link_libraries(test_io_dev_memory unity)
+target_link_libraries(test_io_dev_memory io_dev)
+target_link_libraries(test_io_dev_memory io_dev_memory)
+add_test(NAME test_io_dev_memory COMMAND test_io_dev_memory)
