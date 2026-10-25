@@ -139,8 +139,7 @@ int sysbus_memory_map_iodev(
         }
     }
 
-    dev_node_to_map =
-        linked_list_make_node((void **)dev, (*dev)->meta_data.free);
+    dev_node_to_map = linked_list_make_node((void **)dev, io_dev_free_void);
     if(!dev_node_to_map) {
         return ENOMEM;
     }

@@ -1,4 +1,5 @@
 add_subdirectory(helper)
-add_subdirectory(cpu)
+add_subdirectory(io_devs)
 add_subdirectory(sysbus)
+add_subdirectory(cpu)
 add_subdirectory(cli)

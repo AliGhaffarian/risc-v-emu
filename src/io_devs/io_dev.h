@@ -7,13 +7,15 @@ struct io_dev;
  * @brief fields every io_dev share
  */
 struct io_dev_metadata {
-    void (*step)(struct io_dev *self);
-    struct sysbus *parent;
-    uint8_t *exposed_memory;
+    void (*_Nullable step)(struct io_dev *_Nonnull self);
+    struct sysbus *_Nullable parent;
+    uint8_t *_Nonnull exposed_memory;
     uint64_t exposed_memory_length;
     uint64_t mapped_base_addr;
-    void (*free)(void * _Nonnull self);
-    void (*_Nullable debug_dump)(void *_Nonnull self);
+    void (*_Nullable free)(
+        struct io_dev *_Nonnull self); /** free dev_specific_data only **/
+    void (*_Nullable debug_dump)(
+        const struct io_dev *_Nonnull self); /** dump dev_specific_data **/
 };
 
 /**
@@ -23,3 +25,15 @@ struct io_dev {
     struct io_dev_metadata meta_data;
     char dev_specific_data[];
 };
+
+// dump struct of io_dev, call io_dev->meta_data.debug_dump
+void debug_io_dev_dump(const struct io_dev *_Nonnull dev);
+
+// free meta data, call io_dev->meta_data.free
+void io_dev_freep(struct io_dev *_Nullable *_Nonnull dev);
+
+// free meta data, call io_dev->meta_data.free
+void io_dev_free(struct io_dev *_Nullable dev);
+
+// free meta data, call io_dev->meta_data.free
+void io_dev_free_void(void *_Nullable dev);
