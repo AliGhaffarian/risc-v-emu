@@ -19,12 +19,12 @@ void tearDown(void)
 
 void test_new_io_dev_memory()
 {
-    struct io_dev_metadata metadata = {0};
-    struct io_dev_memory *got       = NULL;
-    metadata.exposed_memory         = calloc(1, 1028);
-    metadata.exposed_memory_length  = 1028;
+    struct io_dev_metadata *metadata = calloc(1, sizeof(*metadata));
+    struct io_dev_memory *got        = NULL;
+    metadata->exposed_memory         = calloc(1, 1028);
+    metadata->exposed_memory_length  = 1028;
 
-    memcpy(metadata.exposed_memory, "hello!", sizeof("hello!"));
+    memcpy(metadata->exposed_memory, "hello!", sizeof("hello!"));
 
     got = new_io_dev_memory(&metadata);
 
