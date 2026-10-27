@@ -1,7 +1,9 @@
 #include "io_dev.h"
 #include <assert.h>
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 // dump struct of io_dev, call io_dev->meta_data.debug_dump
 void debug_io_dev_dump(const struct io_dev *_Nonnull dev)
@@ -38,3 +40,26 @@ void io_dev_freep(struct io_dev *_Nullable *_Nonnull dev)
 
 // free meta data, call io_dev->meta_data.free
 void io_dev_free_void(void *_Nullable dev) { io_dev_free(dev); }
+
+int new_metadata_with_mem(
+    struct io_dev_metadata *_Nullable *_Nonnull ret_metadata,
+    const uint8_t *_Nullable mem_buf,
+    uint64_t buf_len)
+{
+    assert(ret_metadata);
+
+    if(!(*ret_metadata)) {
+        (*ret_metadata) = calloc(1, sizeof(struct io_dev_metadata));
+        if(!(*ret_metadata)) {
+            return ENOMEM;
+        }
+    }
+
+    (*ret_metadata)->exposed_memory = calloc(1, buf_len);
+    if(mem_buf) {
+        memcpy((*ret_metadata)->exposed_memory, mem_buf, buf_len);
+    }
+    (*ret_metadata)->exposed_memory_length = buf_len;
+
+    return 0;
+}
