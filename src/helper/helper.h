@@ -10,8 +10,8 @@ void freep(void *_Nonnull ptr);
 
 #define MOVE(ptr_to_ptr)                                                       \
     ({                                                                         \
-        void *__tmp_move_var = *(ptr_to_ptr);                                  \
-        *(ptr_to_ptr)        = NULL;                                           \
+        typeof(*(ptr_to_ptr)) __tmp_move_var = *(ptr_to_ptr);                  \
+        *(ptr_to_ptr)                        = NULL;                           \
         __tmp_move_var;                                                        \
     })
 

@@ -74,13 +74,4 @@ void debug_dump_cpu(const struct rv64_cpu *_Nonnull cpu)
         printf("x%d: %lx\t\t", i, cpu->regs[i]);
         printf("x%d: %lx\n", i, cpu->regs[i + 1]);
     }
-
-    puts("mem:");
-    for(int i = 0; i < cpu->opt.mem_size; i += 4) {
-        printf("%hx: ", i);
-        printf("%hx, ", cpu->mem[i]);
-        printf("%hx, ", cpu->mem[i + 1]);
-        printf("%hx, ", cpu->mem[i + 2]);
-        printf("%hx\n", cpu->mem[i + 4]);
-    }
 }
