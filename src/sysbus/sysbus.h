@@ -13,6 +13,9 @@ struct sysbus {
     uint64_t readdata;
 };
 
+void freep_sysbus(void *_Nonnull sysbus_voidpp);
+#define _cleanup_free_sysbus_ __attribute__((__cleanup__(freep_sysbus)))
+
 void io_devs_step(struct sysbus *_Nonnull self);
 void sysbus_step(struct sysbus *_Nonnull self);
 int sysbus_memory_map_iodev(

@@ -5,6 +5,7 @@
 #include "stddef.h"
 #include <assert.h>
 #include <errno.h>
+#include <stdlib.h>
 
 void io_devs_step(struct sysbus *_Nonnull self)
 {
@@ -147,4 +148,20 @@ int sysbus_memory_map_iodev(
     linked_list_append(&self->io_devs, &dev_node_to_map);
 
     return 0;
+}
+
+void freep_sysbus(void *_Nonnull sysbus_voidpp)
+{
+    assert(sysbus_voidpp);
+    struct sysbus **sysbuspp = (struct sysbus **)sysbus_voidpp;
+    struct sysbus *sysbus    = *sysbuspp;
+    if(!sysbus) {
+        goto finish;
+    }
+
+    linked_list_free(&sysbus->io_devs);
+    free(sysbus);
+
+finish:
+    *sysbuspp = NULL;
 }
