@@ -58,6 +58,8 @@ void test_sysbus_memory_map_iodev()
 
         TEST_ASSERT_EQUAL(ENOMEM, err);
         TEST_ASSERT_NOT_NULL(second);
+
+        linked_list_free(&self.io_devs);
     }
     {
         struct sysbus self                      = {0};
@@ -77,6 +79,8 @@ void test_sysbus_memory_map_iodev()
 
         TEST_ASSERT_EQUAL(ENOMEM, err);
         TEST_ASSERT_NOT_NULL(second);
+
+        linked_list_free(&self.io_devs);
     }
 }
 
@@ -159,11 +163,10 @@ void test_sysbus_step()
         TEST_ASSERT_EQUAL(30, second->meta_data.exposed_memory[0]);
         TEST_ASSERT_EQUAL(0, second->meta_data.exposed_memory[1]);
         TEST_ASSERT_EQUAL(30, self.readdata);
+
+        linked_list_free(&self.io_devs);
     }
 }
-
-// void io_devs_step(struct sysbus *_Nonnull self);
-// void sysbus_step(struct sysbus *_Nonnull self);
 
 int main(void)
 {
