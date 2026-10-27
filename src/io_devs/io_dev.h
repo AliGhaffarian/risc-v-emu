@@ -18,6 +18,10 @@ struct io_dev_metadata {
         const struct io_dev *_Nonnull self); /** dump dev_specific_data **/
 };
 
+void freep_io_dev_metadata(void *_Nonnull io_dev_metadata_voidpp);
+#define _cleanup_free_io_dev_meta_data_                                        \
+    __attribute__((__cleanup__(freep_io_dev_metadata)))
+
 /**
  * @brief abstract io_dev, each io_dev should start with the following fields
  */

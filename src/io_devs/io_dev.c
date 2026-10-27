@@ -63,3 +63,17 @@ int new_metadata_with_mem(
 
     return 0;
 }
+
+void freep_io_dev_metadata(void *_Nonnull io_dev_metadata_voidpp)
+{
+    assert(io_dev_metadata_voidpp);
+
+    struct io_dev_metadata **to_freep =
+        (struct io_dev_metadata **)io_dev_metadata_voidpp;
+    struct io_dev_metadata *to_free = *to_freep;
+
+    free(to_free->exposed_memory);
+    free(to_free);
+
+    *to_freep = NULL;
+}
