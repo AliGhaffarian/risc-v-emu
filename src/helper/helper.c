@@ -72,7 +72,11 @@ void debug_dump_cpu(const struct rv64_cpu *_Nonnull cpu)
     __builtin_dump_struct(cpu, printf);
     for(int i = 0; i < cpu->opt.regs; i += 2) {
         printf("x%d: %lx\t\t", i, cpu->regs[i]);
-        printf("x%d: %lx\n", i, cpu->regs[i + 1]);
+        if(i + 1 == cpu->opt.regs) {
+            puts("");
+            break;
+        }
+        printf("x%d: %lx\n", i + 1, cpu->regs[i + 1]);
     }
 }
 
