@@ -107,10 +107,10 @@ void handle_args(int argc, char **argv)
 
 int main(int argc, char **argv)
 {
-    FILE *program_file   = NULL;
-    struct rv64_cpu cpu  = {0};
-    int err              = 0;
-    struct cpu_opt c_opt = {
+    FILE *program_file                          = NULL;
+    _cleanup_free_rv64_cpu_ struct rv64_cpu cpu = {0};
+    int err                                     = 0;
+    struct cpu_opt c_opt                        = {
         .regs = BASE_REGS_NUM,
     };
     _cleanup_freep_sysbus_ struct sysbus *sbus = calloc(1, sizeof(*sbus));
