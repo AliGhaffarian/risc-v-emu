@@ -26,7 +26,7 @@ void freep_io_dev_metadata(void *_Nonnull io_dev_metadata_voidpp);
  * @brief abstract io_dev, each io_dev should start with the following fields
  */
 struct io_dev {
-    struct io_dev_metadata meta_data;
+    struct io_dev_metadata *meta_data;
     char dev_specific_data[];
 };
 
@@ -35,6 +35,7 @@ void debug_io_dev_dump(const struct io_dev *_Nonnull dev);
 
 // free meta data, call io_dev->meta_data.free
 void io_dev_freep(struct io_dev *_Nullable *_Nonnull dev);
+#define _cleanup_freep_io_dev_ __attribute__((__cleanup__(io_dev_freep)))
 
 // free meta data, call io_dev->meta_data.free
 void io_dev_free(struct io_dev *_Nullable dev);

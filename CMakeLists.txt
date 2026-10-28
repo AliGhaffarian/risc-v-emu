@@ -12,7 +12,8 @@ set(CMAKE_C_STANDARD 23)
 set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
 
 option(EMU_BUILD_TESTING "enable testing" ${BUILD_TESTING})
-option(EMU_BUILD_CHECKS "enable all checks and sanitizers")
+option(EMU_BUILD_CHECKS "enable all checks")
+option(EMU_BUILD_ASAN "enable address sanitizer")
 
 add_compile_options("-fmacro-prefix-map=${CMAKE_SOURCE_DIR}/src/=")
 link_libraries(safec)
@@ -26,11 +27,17 @@ if(EMU_BUILD_CHECKS)
 
     set(
         CMAKE_C_LINK_WHAT_YOU_USE)
+
     add_compile_options("-g")
+
 
     # function call instrumentation
     add_compile_options("-finstrument-functions")
     add_link_options(-rdynamic)
+endif()
+if(EMU_BUILD_ASAN)
+    add_link_options(-fsanitize=address)
+    add_compile_options(-fsanitize=address -fno-omit-frame-pointer)
 endif()
 
 add_subdirectory(src)

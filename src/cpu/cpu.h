@@ -1,5 +1,6 @@
 #pragma once
 
+#include "sysbus.h"
 #include <stdint.h>
 
 /**
@@ -88,7 +89,6 @@ enum RV64_OPCODE {
 };
 
 #define BASE_REGS_NUM (32 + 1) // 32 x regs + pc
-#define BASE_MEM_SIZE 1024
 
 enum REG_INX_ALIAS {
     REG_INX_ZERO = 0,
@@ -127,7 +127,6 @@ enum REG_INX_ALIAS {
 #define REG_INX_PC 32
 
 struct cpu_opt {
-    uint64_t mem_size;
     uint64_t regs;
 };
 
@@ -138,13 +137,16 @@ struct internal_flags {
 
 struct rv64_cpu {
     uint64_t *_Nonnull regs;
-    uint8_t *_Nonnull mem;
+    struct sysbus
+        *_Nullable ref_sysbus; /** borrowed, if null, memory operations do nothing**/
     struct cpu_opt opt;
     struct internal_flags i_flags;
 };
 
-void free_rv64_cpu(struct rv64_cpu *_Nonnull cpu);
-#define _cleanup_free_rv64_cpu_ __attribute__((__cleanup__(free_rv64_cpu)))
+void free_rv64_cpu(struct rv64_cpu *_Nullable cpu);
+void freep_rv64_cpu(struct rv64_cpu *_Nullable *_Nonnull cpu);
+#define _cleanup_free_rv64_cpu_  __attribute__((__cleanup__(free_rv64_cpu)))
+#define _cleanup_freep_rv64_cpu_ __attribute__((__cleanup__(freep_rv64_cpu)))
 
 #define EXECUTION_HANDLER_INX_DONTCARE 0
 // Rules for execution handlers:
@@ -169,9 +171,12 @@ extern int (*_Nonnull ins_decode_handlers[OPCODE_MAX + 1])(
 
 #define HALT_MAGIC                                                             \
     0x00'00'00'00 // magic isntruction to halt, subject for removal when we introduce trap handling
-int init_rv64_cpu(struct rv64_cpu *_Nonnull cpu, struct cpu_opt *_Nullable opt);
-void step_rv64_cpu(struct rv64_cpu *_Nonnull cpu);
-void mainloop_rv64_cpu(struct rv64_cpu *_Nonnull cpu);
+int init_rv64_cpu(
+    struct rv64_cpu *_Nonnull cpu,
+    struct sysbus *_Nullable ref_sysbus,
+    struct cpu_opt *_Nullable opt);
+void step_rv64_cpu(
+    struct rv64_cpu *_Nonnull cpu, rv64_instruction_t current_instruction);
 
 struct decoded_rv64_base_ins_r {
     uint7b_t opcode;
@@ -444,7 +449,7 @@ void execute_sb(
 
 #define INTERNAL_MEM_READ_UINT_TYPED(cpu, address, ret)                        \
     ({                                                                         \
-        uint64_t mem_read = 0;                                                 \
+        uint64_t mem_read = *(ret);                                            \
         int err           = 0;                                                 \
                                                                                \
         err = read_mem(cpu, address, &mem_read, sizeof(typeof(*(ret))));       \

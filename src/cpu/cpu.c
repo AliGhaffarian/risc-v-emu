@@ -642,37 +642,40 @@ int decode_ins_j(
     return 0;
 }
 
-void free_rv64_cpu(struct rv64_cpu *_Nonnull cpu)
+void freep_rv64_cpu(struct rv64_cpu *_Nullable *_Nonnull cpu)
 {
     assert(cpu);
+    free_rv64_cpu(*cpu);
+    free(*cpu);
+    *cpu = NULL;
+}
+void free_rv64_cpu(struct rv64_cpu *_Nullable cpu)
+{
+    if(!cpu) {
+        return;
+    }
 
     free(cpu->regs);
     //NOLINTNEXTLINE(clang-analyzer-nullability.NullPassedToNonnull)
     cpu->regs = NULL;
-
-    free(cpu->mem);
-    //NOLINTNEXTLINE(clang-analyzer-nullability.NullPassedToNonnull)
-    cpu->mem = NULL;
 }
 
-int init_rv64_cpu(struct rv64_cpu *_Nonnull cpu, struct cpu_opt *_Nullable opt)
+int init_rv64_cpu(
+    struct rv64_cpu *_Nonnull cpu,
+    struct sysbus *_Nullable ref_sysbus,
+    struct cpu_opt *_Nullable opt)
 {
     assert(cpu);
 
-    cpu->opt.mem_size = BASE_MEM_SIZE;
-    cpu->opt.regs     = BASE_REGS_NUM;
+    cpu->opt.regs = BASE_REGS_NUM;
 
     if(opt) {
         cpu->opt = *opt;
     }
+    cpu->ref_sysbus = ref_sysbus;
 
     cpu->regs = calloc(1, sizeof(uint64_t) * cpu->opt.regs);
     if(!cpu->regs) {
-        return ENOMEM;
-    }
-
-    cpu->mem = calloc(1, cpu->opt.mem_size);
-    if(!cpu->mem) {
         return ENOMEM;
     }
 
@@ -682,16 +685,15 @@ int init_rv64_cpu(struct rv64_cpu *_Nonnull cpu, struct cpu_opt *_Nullable opt)
     return 0;
 }
 
-void step_rv64_cpu(struct rv64_cpu *_Nonnull cpu)
+void step_rv64_cpu(
+    struct rv64_cpu *_Nonnull cpu, rv64_instruction_t current_instruction)
 {
     assert(cpu);
 
-    rv64_instruction_t current_instruction = 0;
-    uint8_t opcode                         = 0;
-    void *decoded_ins                      = NULL;
+    uint8_t opcode    = 0;
+    void *decoded_ins = NULL;
     void (*execution_handler)(
         struct rv64_cpu *_Nonnull cpu, void *_Nonnull *_Nonnull vdecoded_ins);
-    fetch(cpu, &current_instruction);
     logger(LOG_DEBUG, stdout, "fetched instruction: %x\n", current_instruction);
 
     opcode = decode_opcode(current_instruction);
@@ -703,21 +705,6 @@ void step_rv64_cpu(struct rv64_cpu *_Nonnull cpu)
     execution_handler(cpu, &decoded_ins);
 
     advance_pc_or_update_i_flags(cpu);
-}
-
-void mainloop_rv64_cpu(struct rv64_cpu *_Nonnull cpu)
-{
-    assert(cpu);
-
-    rv64_instruction_t next_ins = 0;
-
-    while(1) {
-        step_rv64_cpu(cpu);
-        fetch(cpu, &next_ins);
-        if(next_ins == HALT_MAGIC) {
-            break;
-        }
-    }
 }
 
 void execute_addi(
@@ -1414,7 +1401,7 @@ void execute_ld(
     _cleanup_free_ struct decoded_rv64_base_ins_i *decoded_ins =
         MOVE(vdecoded_ins_i);
 
-    uint64_t loaded = 0;
+    static uint64_t loaded;
 
     read_mem64(cpu, cpu->regs[decoded_ins->rs1] + decoded_ins->imm, &loaded);
 
@@ -1431,7 +1418,7 @@ void execute_lw(
     _cleanup_free_ struct decoded_rv64_base_ins_i *decoded_ins =
         MOVE(vdecoded_ins_i);
 
-    uint32_t loaded = 0;
+    static uint32_t loaded;
 
     read_mem32(cpu, cpu->regs[decoded_ins->rs1] + decoded_ins->imm, &loaded);
 
@@ -1449,7 +1436,7 @@ void execute_lwu(
     _cleanup_free_ struct decoded_rv64_base_ins_i *decoded_ins =
         MOVE(vdecoded_ins_i);
 
-    uint32_t loaded = 0;
+    static uint32_t loaded;
 
     read_mem32(cpu, cpu->regs[decoded_ins->rs1] + decoded_ins->imm, &loaded);
 
@@ -1466,7 +1453,7 @@ void execute_lh(
     _cleanup_free_ struct decoded_rv64_base_ins_i *decoded_ins =
         MOVE(vdecoded_ins_i);
 
-    uint16_t loaded = 0;
+    static uint16_t loaded;
 
     read_mem16(cpu, cpu->regs[decoded_ins->rs1] + decoded_ins->imm, &loaded);
 
@@ -1484,7 +1471,7 @@ void execute_lhu(
     _cleanup_free_ struct decoded_rv64_base_ins_i *decoded_ins =
         MOVE(vdecoded_ins_i);
 
-    uint16_t loaded = 0;
+    static uint16_t loaded;
 
     read_mem16(cpu, cpu->regs[decoded_ins->rs1] + decoded_ins->imm, &loaded);
 
@@ -1501,7 +1488,7 @@ void execute_lb(
     _cleanup_free_ struct decoded_rv64_base_ins_i *decoded_ins =
         MOVE(vdecoded_ins_i);
 
-    uint8_t loaded = 0;
+    static uint8_t loaded;
 
     read_mem8(cpu, cpu->regs[decoded_ins->rs1] + decoded_ins->imm, &loaded);
 
@@ -1519,7 +1506,7 @@ void execute_lbu(
     _cleanup_free_ struct decoded_rv64_base_ins_i *decoded_ins =
         MOVE(vdecoded_ins_i);
 
-    uint8_t loaded = 0;
+    static uint8_t loaded;
 
     read_mem8(cpu, cpu->regs[decoded_ins->rs1] + decoded_ins->imm, &loaded);
 
@@ -1601,15 +1588,53 @@ int read_mem(
 
     assert(length <= 8);
 
-    uint64_t current_fetch = 0;
+    static uint64_t current_offset;
 
-    (*ret) = 0;
+    if(!cpu->ref_sysbus) {
+        logger(LOG_DEBUG, stdout, "no sysbus is present, doing nothing\n");
+        return ENOMEM;
+    }
+    logger(
+        LOG_DEBUG,
+        stdout,
+        "doing memory operation with the following sysbus (%p)\n",
+        cpu->ref_sysbus);
 
-    for(int i = 0; i < length; i++) {
-        current_fetch = cpu->mem[(address + i) % (cpu->opt.mem_size)];
-        // NOLINTNEXTLINE(readability-magic-numbers)
-        current_fetch <<= (i * 8);
-        *ret |= current_fetch;
+    if(current_log_level >= LOG_DEBUG) {
+        __builtin_dump_struct(cpu->ref_sysbus, printf);
+    }
+
+    // sysbus doesn't have the desired data, we need a stall cycle for the first byte
+    if(cpu->i_flags.stall == 0) {
+        logger(
+            LOG_DEBUG, stdout, "first time doing memory operation, stalling\n");
+        current_offset            = 1;
+        cpu->i_flags.stall        = 1;
+        cpu->ref_sysbus->address  = address;
+        cpu->ref_sysbus->memwrite = false;
+        *ret                      = 0;
+        return 0;
+    }
+
+    cpu->ref_sysbus->address  = address + current_offset;
+    cpu->ref_sysbus->memwrite = false;
+    *ret |= cpu->ref_sysbus->readdata << ((current_offset - 1) * 8);
+    logger(
+        LOG_DEBUG,
+        stdout,
+        "current_offset:%lu, current ret:%lx, sysbus->readdata:%lx\n",
+        current_offset,
+        *ret,
+        cpu->ref_sysbus->readdata);
+
+    current_offset++;
+    if(current_offset == length + 1) {
+        logger(
+            LOG_DEBUG,
+            stdout,
+            "finished memory operation with ret of:%lx\n",
+            *ret);
+        cpu->i_flags.stall = 0;
     }
 
     return 0;
@@ -1651,13 +1676,23 @@ int write_mem(
 
     assert(length <= 8);
 
-    uint64_t current_fetch = 0;
+    if(!cpu->ref_sysbus) {
+        return ENOMEM;
+    }
 
-    for(int i = 0; i < length; i++) {
-        // NOLINTNEXTLINE(readability-magic-numbers)
-        cpu->mem[(address + i) % (cpu->opt.mem_size)] = write & 0xff;
-        // NOLINTNEXTLINE(readability-magic-numbers)
-        write >>= 8;
+    static int current_offset;
+    if(cpu->i_flags.stall == 0) {
+        current_offset     = 0;
+        cpu->i_flags.stall = 1;
+    }
+
+    cpu->ref_sysbus->address   = address + current_offset;
+    cpu->ref_sysbus->memwrite  = true;
+    cpu->ref_sysbus->writedata = write >> (current_offset * 8);
+
+    current_offset++;
+    if(current_offset == length) {
+        cpu->i_flags.stall = 0;
     }
 
     return 0;

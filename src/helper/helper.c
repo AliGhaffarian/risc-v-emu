@@ -75,3 +75,28 @@ void debug_dump_cpu(const struct rv64_cpu *_Nonnull cpu)
         printf("x%d: %lx\n", i, cpu->regs[i + 1]);
     }
 }
+
+void debug_dump_memory(const char *mem, uint64_t len, FILE *dst)
+{
+    puts("mem:");
+    int i = 0;
+    for(i = 0; i < len - 8; i += 8) {
+        (void)fprintf(dst, "%hhx: ", i);
+        (void)fprintf(dst, "%hhx, ", mem[i]);
+        (void)fprintf(dst, "%hhx, ", mem[i + 1]);
+        (void)fprintf(dst, "%hhx, ", mem[i + 2]);
+        (void)fprintf(dst, "%hhx, ", mem[i + 3]);
+        (void)fprintf(dst, "%hhx, ", mem[i + 4]);
+        (void)fprintf(dst, "%hhx, ", mem[i + 5]);
+        (void)fprintf(dst, "%hhx, ", mem[i + 6]);
+        (void)fprintf(dst, "%hhx\n", mem[i + 7]);
+    }
+
+    if(i < len) {
+        (void)fprintf(dst, "%hhx: ", i);
+        for(; i < len; i++) {
+            (void)fprintf(dst, "%hhx, ", mem[i]);
+        }
+        (void)fprintf(dst, "\n");
+    }
+}

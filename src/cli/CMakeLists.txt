@@ -1,4 +1,7 @@
 add_executable(cli cli.c)
 target_link_libraries(cli PRIVATE cpu)
 target_link_libraries(cli PRIVATE helper)
+target_link_libraries(cli PRIVATE io_dev_memory)
+target_link_libraries(cli PRIVATE io_dev)
+target_link_libraries(cli PRIVATE machine)
 target_include_directories(cli PRIVATE ${CMAKE_SOURCE_DIR}/src/helper ${CMAKE_SOURCE_DIR}/src/cpu)

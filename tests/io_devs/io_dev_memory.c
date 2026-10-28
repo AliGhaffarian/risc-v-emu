@@ -19,10 +19,11 @@ void tearDown(void)
 
 void test_new_io_dev_memory()
 {
-    struct io_dev_metadata *metadata = calloc(1, sizeof(*metadata));
-    struct io_dev_memory *got        = NULL;
-    metadata->exposed_memory         = calloc(1, 1028);
-    metadata->exposed_memory_length  = 1028;
+    _cleanup_free_io_dev_meta_data_ struct io_dev_metadata *metadata =
+        calloc(1, sizeof(*metadata));
+    _cleanup_freep_io_dev_memory_ struct io_dev_memory *got = NULL;
+    metadata->exposed_memory                                = calloc(1, 1028);
+    metadata->exposed_memory_length                         = 1028;
 
     memcpy(metadata->exposed_memory, "hello!", sizeof("hello!"));
 
@@ -30,7 +31,7 @@ void test_new_io_dev_memory()
 
     TEST_ASSERT_NOT_NULL(got);
     TEST_ASSERT_EQUAL_CHAR_ARRAY(
-        "hello!", got->metadata.exposed_memory, sizeof("hello!"));
+        "hello!", got->metadata->exposed_memory, sizeof("hello!"));
 }
 
 int main(void)

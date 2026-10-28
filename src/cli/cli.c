@@ -1,6 +1,9 @@
 #include "cpu.h"
 #include "helper.h"
+#include "io_dev.h"
+#include "io_dev_memory.h"
 #include "logger.h"
+#include "machine.h"
 #include <errno.h>
 #include <getopt.h>
 #include <stdio.h>
@@ -10,6 +13,8 @@
 /**
  * @brief Stores parsed command line arguments.
  */
+
+#define BASE_MEM_SIZE 1024
 struct args_struct {
     char *program_file;
     uint64_t mem_size;
@@ -106,12 +111,14 @@ int main(int argc, char **argv)
     struct rv64_cpu cpu  = {0};
     int err              = 0;
     struct cpu_opt c_opt = {
-        .mem_size = BASE_MEM_SIZE,
-        .regs     = BASE_REGS_NUM,
+        .regs = BASE_REGS_NUM,
     };
+    _cleanup_freep_sysbus_ struct sysbus *sbus = calloc(1, sizeof(*sbus));
+    _cleanup_free_io_dev_meta_data_ struct io_dev_metadata *mdata = NULL;
+    _cleanup_freep_io_dev_memory_ struct io_dev_memory *mem       = NULL;
+    _cleanup_free_ char *input_buf                                = NULL;
 
     handle_args(argc, argv);
-    c_opt.mem_size = args.mem_size,
 
     program_file = fopen(args.program_file, "r");
     if(!program_file) {
@@ -119,14 +126,41 @@ int main(int argc, char **argv)
         exit(1);
     }
 
-    err = init_rv64_cpu(&cpu, NULL);
+    input_buf = calloc(1, args.mem_size);
+    if(!input_buf) {
+        puts(strerror(errno));
+        return errno;
+    }
+
+    (void)fread(input_buf, args.mem_size, 1, program_file);
+    err = new_metadata_with_mem(&mdata, (uint8_t *)input_buf, args.mem_size);
+    if(err) {
+        logger(
+            LOG_ERROR,
+            stdout,
+            "failed to allocate a new meta data for memory device");
+        return err;
+    }
+    freep((void *)&input_buf);
+
+    mem = new_io_dev_memory(&mdata);
+    if(!mem) {
+        logger(LOG_ERROR, stdout, "failed to allocate a new memory device");
+        return err;
+    }
+
+    err = sysbus_memory_map_iodev(sbus, (struct io_dev **)&mem);
+    if(err) {
+        logger(LOG_ERROR, stdout, "failed to memory map memory device");
+        return err;
+    }
+
+    err = init_rv64_cpu(&cpu, sbus, NULL);
     if(err) {
         logger(LOG_ERROR, stdout, "error initing the cpu\n");
         exit(1);
     }
     logger(LOG_DEBUG, stdout, "init cpu success\n");
-
-    (void)fread(cpu.mem, 1, cpu.opt.mem_size, program_file);
 
     if(ferror(program_file)) {
         puts(strerror(errno));
@@ -144,6 +178,6 @@ int main(int argc, char **argv)
 
     (void)fclose(program_file);
 
-    mainloop_rv64_cpu(&cpu);
+    machine_mainloop(&cpu, sbus);
     debug_dump_cpu(&cpu);
 }

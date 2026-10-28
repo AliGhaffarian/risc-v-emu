@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stdint.h>
+#include <stdio.h>
 
 void freep(void *_Nonnull ptr);
 
@@ -26,3 +27,4 @@ uint64_t repeat_bit_in_num(uint64_t num, uint8_t start, uint8_t bit);
 
 struct rv64_cpu;
 void debug_dump_cpu(const struct rv64_cpu *_Nonnull cpu);
+void debug_dump_memory(const char *mem, uint64_t len, FILE *dst);

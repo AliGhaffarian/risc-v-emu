@@ -1,11 +1,29 @@
 #include "cpu.h"
 #include "generated_aliases.h"
 #include "helper.h"
+#include "io_dev.h"
+#include "io_dev_memory.h"
+#include "logger.h"
 #include "unity.h"
 #include <stdlib.h>
 #include <string.h>
 
 // NOLINTBEGIN(readability-magic-numbers)
+
+struct sysbus *
+simple_setup_sysbus_with_mem(const char *_Nullable mem_buf, uint64_t buf_len)
+{
+    struct sysbus *ret = calloc(1, sizeof(*ret));
+    _cleanup_free_io_dev_meta_data_ struct io_dev_metadata *metadata = NULL;
+    struct io_dev_memory *mem                                        = NULL;
+
+    new_metadata_with_mem(&metadata, (uint8_t *)mem_buf, buf_len);
+    metadata->parent = ret;
+    mem              = new_io_dev_memory(&metadata);
+    sysbus_memory_map_iodev(ret, (struct io_dev **)&mem);
+
+    return ret;
+}
 
 void setUp(void)
 {
@@ -169,7 +187,7 @@ void test_execute_addi(void)
     ins->rs1 = 7;
     ins->imm = 0xff;
 
-    init_rv64_cpu(&cpu, NULL);
+    init_rv64_cpu(&cpu, NULL, NULL);
 
     cpu.regs[7] = 5;
     cpu.regs[5] = 2;
@@ -189,7 +207,7 @@ void test_execute_slti(void)
     ins->rs1 = 7;
     ins->imm = ((uint64_t)-1);
 
-    init_rv64_cpu(&cpu, NULL);
+    init_rv64_cpu(&cpu, NULL, NULL);
 
     cpu.regs[7] = 5;
     cpu.regs[5] = 2;
@@ -208,7 +226,7 @@ void test_execute_sltiu(void)
     ins->rs1 = 7;
     ins->imm = ((uint64_t)-1);
 
-    init_rv64_cpu(&cpu, NULL);
+    init_rv64_cpu(&cpu, NULL, NULL);
 
     cpu.regs[7] = 5;
     cpu.regs[5] = 2;
@@ -228,7 +246,7 @@ void test_execute_andi(void)
     ins->rs1 = 7;
     ins->imm = 0xff;
 
-    init_rv64_cpu(&cpu, NULL);
+    init_rv64_cpu(&cpu, NULL, NULL);
 
     cpu.regs[7] = 5;
     cpu.regs[5] = 2;
@@ -248,7 +266,7 @@ void test_execute_ori(void)
     ins->rs1 = 7;
     ins->imm = 0xff;
 
-    init_rv64_cpu(&cpu, NULL);
+    init_rv64_cpu(&cpu, NULL, NULL);
 
     cpu.regs[7] = 5;
     cpu.regs[5] = 2;
@@ -268,7 +286,7 @@ void test_execute_xori(void)
     ins->rs1 = 7;
     ins->imm = 0xff;
 
-    init_rv64_cpu(&cpu, NULL);
+    init_rv64_cpu(&cpu, NULL, NULL);
 
     cpu.regs[7] = 5;
     cpu.regs[5] = 2;
@@ -294,7 +312,7 @@ void test_execute_srlai(void)
 
         ins->imm = shamt + shift_type;
 
-        init_rv64_cpu(&cpu, NULL);
+        init_rv64_cpu(&cpu, NULL, NULL);
 
         cpu.regs[7] = 0x80'aa'bb'cc'dd'ee'ff'11;
         cpu.regs[5] = 2;
@@ -318,7 +336,7 @@ void test_execute_srlai(void)
 
         ins->imm = shamt + shift_type;
 
-        init_rv64_cpu(&cpu, NULL);
+        init_rv64_cpu(&cpu, NULL, NULL);
 
         cpu.regs[7] = 0x80'aa'bb'cc'dd'ee'ff'11;
         cpu.regs[5] = 2;
@@ -338,7 +356,7 @@ void test_execute_lui(void)
     ins->rd  = 5;
     ins->imm = 0xff'00'0;
 
-    init_rv64_cpu(&cpu, NULL);
+    init_rv64_cpu(&cpu, NULL, NULL);
 
     cpu.regs[5]          = -1;
     cpu.regs[REG_INX_PC] = 0xff'00;
@@ -357,7 +375,7 @@ void test_execute_auipc(void)
     ins->rd  = 5;
     ins->imm = 0xff'00'0;
 
-    init_rv64_cpu(&cpu, NULL);
+    init_rv64_cpu(&cpu, NULL, NULL);
 
     cpu.regs[REG_INX_PC] = 0x0'ff'0;
     cpu.regs[5]          = -1;
@@ -377,7 +395,7 @@ void test_execute_addiw(void)
     ins->rs1 = 7;
     ins->imm = -2;
 
-    init_rv64_cpu(&cpu, NULL);
+    init_rv64_cpu(&cpu, NULL, NULL);
 
     cpu.regs[7] = 1;
     cpu.regs[5] = 2;
@@ -401,7 +419,7 @@ void test_execute_slli(void)
 
     ins->imm = shamt + shift_type;
 
-    init_rv64_cpu(&cpu, NULL);
+    init_rv64_cpu(&cpu, NULL, NULL);
 
     cpu.regs[7] = 0x80'aa'bb'cc'8d'ee'ff'11;
     cpu.regs[5] = 2;
@@ -425,7 +443,7 @@ void test_execute_slliw(void)
 
     ins->imm = shamt + shift_type;
 
-    init_rv64_cpu(&cpu, NULL);
+    init_rv64_cpu(&cpu, NULL, NULL);
 
     cpu.regs[7] = 0x80'aa'bb'cc'8d'ee'ff'11;
     cpu.regs[5] = 2;
@@ -451,7 +469,7 @@ void test_execute_srlaiw(void)
 
         ins->imm = shamt + shift_type;
 
-        init_rv64_cpu(&cpu, NULL);
+        init_rv64_cpu(&cpu, NULL, NULL);
 
         cpu.regs[7] = 0x80'aa'bb'cc'8d'ee'ff'11;
         cpu.regs[5] = 2;
@@ -475,7 +493,7 @@ void test_execute_srlaiw(void)
 
         ins->imm = shamt + shift_type;
 
-        init_rv64_cpu(&cpu, NULL);
+        init_rv64_cpu(&cpu, NULL, NULL);
 
         cpu.regs[7] = 0x80'aa'bb'cc'8d'ee'ff'11;
         cpu.regs[5] = 2;
@@ -496,7 +514,7 @@ void test_execute_add(void)
     ins->rs1 = 7;
     ins->rs2 = 8;
 
-    init_rv64_cpu(&cpu, NULL);
+    init_rv64_cpu(&cpu, NULL, NULL);
 
     cpu.regs[7] = 5;
     cpu.regs[8] = 50;
@@ -517,7 +535,7 @@ void test_execute_sub(void)
     ins->rs1 = 7;
     ins->rs2 = 8;
 
-    init_rv64_cpu(&cpu, NULL);
+    init_rv64_cpu(&cpu, NULL, NULL);
 
     cpu.regs[7] = 50;
     cpu.regs[8] = 5;
@@ -538,7 +556,7 @@ void test_execute_slt(void)
     ins->rs1 = 7;
     ins->rs2 = 3;
 
-    init_rv64_cpu(&cpu, NULL);
+    init_rv64_cpu(&cpu, NULL, NULL);
 
     cpu.regs[7] = 5;
     cpu.regs[3] = -1;
@@ -558,7 +576,7 @@ void test_execute_sltu(void)
     ins->rs1 = 7;
     ins->rs2 = 3;
 
-    init_rv64_cpu(&cpu, NULL);
+    init_rv64_cpu(&cpu, NULL, NULL);
 
     cpu.regs[7] = 5;
     cpu.regs[3] = -1;
@@ -579,7 +597,7 @@ void test_execute_and(void)
     ins->rs1 = 7;
     ins->rd  = 5;
 
-    init_rv64_cpu(&cpu, NULL);
+    init_rv64_cpu(&cpu, NULL, NULL);
     cpu.regs[3] = 0xff;
     cpu.regs[7] = 5;
     cpu.regs[5] = 2;
@@ -599,7 +617,7 @@ void test_execute_or(void)
     ins->rs1 = 7;
     ins->rs2 = 3;
 
-    init_rv64_cpu(&cpu, NULL);
+    init_rv64_cpu(&cpu, NULL, NULL);
     cpu.regs[3] = 0xff;
     cpu.regs[7] = 5;
     cpu.regs[5] = 2;
@@ -619,7 +637,7 @@ void test_execute_xor(void)
     ins->rs1 = 7;
     ins->rs2 = 3;
 
-    init_rv64_cpu(&cpu, NULL);
+    init_rv64_cpu(&cpu, NULL, NULL);
 
     cpu.regs[3] = 0xff;
     cpu.regs[7] = 5;
@@ -639,7 +657,7 @@ void test_execute_jal(void)
     ins->rd  = 5;
     ins->imm = 0xaa;
 
-    init_rv64_cpu(&cpu, NULL);
+    init_rv64_cpu(&cpu, NULL, NULL);
 
     cpu.regs[REG_INX_PC] = 0xff;
     cpu.regs[5]          = 5;
@@ -661,7 +679,7 @@ void test_execute_jalr(void)
     ins->rs1 = 3;
     ins->imm = 0xaa;
 
-    init_rv64_cpu(&cpu, NULL);
+    init_rv64_cpu(&cpu, NULL, NULL);
 
     cpu.regs[REG_INX_PC] = 0xff;
     cpu.regs[3]          = 0x11;
@@ -689,7 +707,7 @@ void test_execute_sll(void)
 
     ins->func7 = shift_type;
 
-    init_rv64_cpu(&cpu, NULL);
+    init_rv64_cpu(&cpu, NULL, NULL);
 
     cpu.regs[2] = shamt;
     cpu.regs[7] = 0x80'aa'bb'cc'8d'ee'ff'11;
@@ -717,7 +735,7 @@ void test_execute_srla(void)
 
         ins->func7 = shift_type;
 
-        init_rv64_cpu(&cpu, NULL);
+        init_rv64_cpu(&cpu, NULL, NULL);
 
         cpu.regs[2] = shamt;
         cpu.regs[7] = 0x80'aa'bb'cc'dd'ee'ff'11;
@@ -743,7 +761,7 @@ void test_execute_srla(void)
 
         ins->func7 = shift_type;
 
-        init_rv64_cpu(&cpu, NULL);
+        init_rv64_cpu(&cpu, NULL, NULL);
 
         cpu.regs[2] = shamt;
         cpu.regs[7] = 0x80'aa'bb'cc'dd'ee'ff'11;
@@ -765,7 +783,7 @@ void test_execute_addw(void)
     ins->rs1 = 7;
     ins->rs2 = 2;
 
-    init_rv64_cpu(&cpu, NULL);
+    init_rv64_cpu(&cpu, NULL, NULL);
 
     cpu.regs[2] = -2;
     cpu.regs[7] = 1;
@@ -791,7 +809,7 @@ void test_execute_sllw(void)
 
     ins->func7 = shift_type;
 
-    init_rv64_cpu(&cpu, NULL);
+    init_rv64_cpu(&cpu, NULL, NULL);
 
     cpu.regs[2] = shamt;
     cpu.regs[7] = 0x80'aa'bb'cc'8d'ee'ff'11;
@@ -819,7 +837,7 @@ void test_execute_srlaw(void)
 
         ins->func7 = shift_type;
 
-        init_rv64_cpu(&cpu, NULL);
+        init_rv64_cpu(&cpu, NULL, NULL);
 
         cpu.regs[2] = shamt;
         cpu.regs[7] = 0x80'aa'bb'cc'8d'ee'ff'11;
@@ -845,7 +863,7 @@ void test_execute_srlaw(void)
 
         ins->func7 = shift_type;
 
-        init_rv64_cpu(&cpu, NULL);
+        init_rv64_cpu(&cpu, NULL, NULL);
 
         cpu.regs[2] = shamt;
         cpu.regs[7] = 0x80'aa'bb'cc'8d'ee'ff'11;
@@ -867,7 +885,7 @@ void test_execute_subw(void)
     ins->rs1 = 7;
     ins->rs2 = 8;
 
-    init_rv64_cpu(&cpu, NULL);
+    init_rv64_cpu(&cpu, NULL, NULL);
 
     cpu.regs[7] = 0xaa'bb'cc'dd'ff'aa'bb'fa;
     cpu.regs[8] = 0xcc'ee'ff'aa'00'00'00'f1;
@@ -890,7 +908,7 @@ void test_execute_beq(void)
         ins->rs2 = 8;
         ins->imm = 0xf'00'00;
 
-        init_rv64_cpu(&cpu, NULL);
+        init_rv64_cpu(&cpu, NULL, NULL);
 
         cpu.regs[REG_INX_PC] = 0xff'ff;
         cpu.regs[7]          = 1;
@@ -912,7 +930,7 @@ void test_execute_beq(void)
         ins->rs2 = 8;
         ins->imm = 0xf'00'00;
 
-        init_rv64_cpu(&cpu, NULL);
+        init_rv64_cpu(&cpu, NULL, NULL);
 
         cpu.regs[REG_INX_PC] = 0xff'ff;
         cpu.regs[7]          = 1;
@@ -937,7 +955,7 @@ void test_execute_bne(void)
         ins->rs2 = 8;
         ins->imm = 0xf'00'00;
 
-        init_rv64_cpu(&cpu, NULL);
+        init_rv64_cpu(&cpu, NULL, NULL);
 
         cpu.regs[REG_INX_PC] = 0xff'ff;
         cpu.regs[7]          = 1;
@@ -959,7 +977,7 @@ void test_execute_bne(void)
         ins->rs2 = 8;
         ins->imm = 0xf'00'00;
 
-        init_rv64_cpu(&cpu, NULL);
+        init_rv64_cpu(&cpu, NULL, NULL);
 
         cpu.regs[REG_INX_PC] = 0xff'ff;
         cpu.regs[7]          = 1;
@@ -984,7 +1002,7 @@ void test_execute_blt(void)
         ins->rs2 = 8;
         ins->imm = 0xf'00'00;
 
-        init_rv64_cpu(&cpu, NULL);
+        init_rv64_cpu(&cpu, NULL, NULL);
 
         cpu.regs[REG_INX_PC] = 0xff'ff;
         cpu.regs[7]          = -1;
@@ -1006,7 +1024,7 @@ void test_execute_blt(void)
         ins->rs2 = 8;
         ins->imm = 0xf'00'00;
 
-        init_rv64_cpu(&cpu, NULL);
+        init_rv64_cpu(&cpu, NULL, NULL);
 
         cpu.regs[REG_INX_PC] = 0xff'ff;
         cpu.regs[7]          = 1;
@@ -1031,7 +1049,7 @@ void test_execute_bltu(void)
         ins->rs2 = 8;
         ins->imm = 0xf'00'00;
 
-        init_rv64_cpu(&cpu, NULL);
+        init_rv64_cpu(&cpu, NULL, NULL);
 
         cpu.regs[REG_INX_PC] = 0xff'ff;
         cpu.regs[7]          = 1;
@@ -1053,7 +1071,7 @@ void test_execute_bltu(void)
         ins->rs2 = 8;
         ins->imm = 0xf'00'00;
 
-        init_rv64_cpu(&cpu, NULL);
+        init_rv64_cpu(&cpu, NULL, NULL);
 
         cpu.regs[REG_INX_PC] = 0xff'ff;
         cpu.regs[7]          = -1;
@@ -1078,7 +1096,7 @@ void test_execute_bge(void)
         ins->rs2 = 8;
         ins->imm = 0xf'00'00;
 
-        init_rv64_cpu(&cpu, NULL);
+        init_rv64_cpu(&cpu, NULL, NULL);
 
         cpu.regs[REG_INX_PC] = 0xff'ff;
         cpu.regs[7]          = 1;
@@ -1100,7 +1118,7 @@ void test_execute_bge(void)
         ins->rs2 = 8;
         ins->imm = 0xf'00'00;
 
-        init_rv64_cpu(&cpu, NULL);
+        init_rv64_cpu(&cpu, NULL, NULL);
 
         cpu.regs[REG_INX_PC] = 0xff'ff;
         cpu.regs[7]          = -1;
@@ -1125,7 +1143,7 @@ void test_execute_bgeu(void)
         ins->rs2 = 8;
         ins->imm = 0xf'00'00;
 
-        init_rv64_cpu(&cpu, NULL);
+        init_rv64_cpu(&cpu, NULL, NULL);
 
         cpu.regs[REG_INX_PC] = 0xff'ff;
         cpu.regs[7]          = -1;
@@ -1147,7 +1165,7 @@ void test_execute_bgeu(void)
         ins->rs2 = 8;
         ins->imm = 0xf'00'00;
 
-        init_rv64_cpu(&cpu, NULL);
+        init_rv64_cpu(&cpu, NULL, NULL);
 
         cpu.regs[REG_INX_PC] = 0xff'ff;
         cpu.regs[7]          = 1;
@@ -1164,70 +1182,98 @@ void test_execute_bgeu(void)
 void test_read_mem_rw()
 {
     {
-        struct rv64_cpu cpu = {0};
-        init_rv64_cpu(&cpu, NULL);
-        uint8_t expected_byte1 = 0x11;
-        uint8_t expected_byte2 = 0x22;
-        uint8_t expected_byte3 = 0x33;
-        uint64_t read_address  = cpu.opt.mem_size - 1;
-        uint64_t read_ret      = -1;
-        uint64_t read_err      = 0;
+        _cleanup_free_rv64_cpu_ struct rv64_cpu cpu = {0};
+        _cleanup_freep_sysbus_ struct sysbus *sbus  = NULL;
+        char data[16]                               = {0};
+        uint8_t expected_byte1                      = 0x11;
+        uint8_t expected_byte2                      = 0x22;
+        uint8_t expected_byte3                      = 0x33;
+        uint64_t read_address                       = sizeof(data) - 6;
+        uint64_t read_ret                           = 0;
+        uint64_t read_err                           = 0;
 
-        write_mem8(&cpu, read_address, expected_byte1);
-        write_mem16(
-            &cpu, read_address + 1, (expected_byte3 << 8) | expected_byte2);
+        sbus = simple_setup_sysbus_with_mem(data, sizeof(data));
+        init_rv64_cpu(&cpu, sbus, NULL);
 
-        // the following bytes must not be read, as they are beyond the `length`
-        write_mem8(&cpu, read_address + 3, expected_byte3);
-        write_mem8(&cpu, read_address + 4, expected_byte3);
-        write_mem8(&cpu, read_address + 5, expected_byte3);
+        {
+            struct io_dev *mem_dev = sbus->io_devs->data;
+            uint8_t *mem           = mem_dev->meta_data->exposed_memory;
+
+            mem[read_address]     = expected_byte1;
+            mem[read_address + 1] = expected_byte2;
+            mem[read_address + 2] = expected_byte3;
+
+            /* Bytes beyond the requested length must not be included. */
+            mem[read_address + 3] = expected_byte3;
+            mem[read_address + 4] = expected_byte3;
+            mem[read_address + 5] = expected_byte3;
+        }
 
         read_err = read_mem(&cpu, read_address, &read_ret, 3);
-
-        TEST_ASSERT_EQUAL_HEX64(0x00'00'00'00'00'33'22'11, read_ret);
         TEST_ASSERT_EQUAL(0, read_err);
+        sysbus_step(cpu.ref_sysbus);
+
+        for(int i = 0; i < 3; i++) {
+            read_err = read_mem(&cpu, read_address, &read_ret, 3);
+            TEST_ASSERT_EQUAL(0, read_err);
+
+            sysbus_step(cpu.ref_sysbus);
+        }
+
+        TEST_ASSERT_EQUAL_HEX64(0x33'22'11, read_ret);
+        TEST_ASSERT_EQUAL(0, cpu.i_flags.stall);
     }
 }
-
 void test_fetch()
 {
     {
-        struct rv64_cpu cpu = {0};
-        init_rv64_cpu(&cpu, NULL);
-        uint32_t ins1          = 0xff'11'22'33;
-        uint32_t ins2          = -1;
-        uint32_t ins3          = 0x00'11'22'33;
-        uint64_t start_address = (cpu.opt.mem_size >> 2) << 2;
-        uint32_t ret_ins       = 0;
+        _cleanup_free_rv64_cpu_ struct rv64_cpu cpu = {0};
+        _cleanup_freep_sysbus_ struct sysbus *sbus  = NULL;
+        uint32_t ins1                               = 0xff'11'22'33;
+        uint32_t ins2                               = UINT32_MAX;
+        uint32_t ins3                               = 0x00'11'22'33;
+        uint64_t start_address;
+        uint32_t ret_ins = 0;
 
-        write_mem32(&cpu, start_address - 8, -1);
-        write_mem32(&cpu, start_address - 4, 0);
-        write_mem32(&cpu, start_address, ins1);
-        write_mem32(&cpu, start_address + 4, ins2);
-        write_mem32(&cpu, start_address + 8, ins3);
-        write_mem32(&cpu, start_address + 12, 0);
+        char data[64] = {0};
+
+        sbus = simple_setup_sysbus_with_mem(data, sizeof(data));
+        init_rv64_cpu(&cpu, sbus, NULL);
+
+        start_address = ((sizeof(data) / 4) * 4) - 16;
+
+        {
+            struct io_dev *mem_dev = sbus->io_devs->data;
+            uint8_t *mem           = mem_dev->meta_data->exposed_memory;
+
+            /* Populate memory explicitly in little-endian order. */
+            for(int i = 0; i < 4; i++) {
+                mem[start_address - 8 + i]  = (uint8_t)(UINT32_MAX >> (i * 8));
+                mem[start_address - 4 + i]  = 0;
+                mem[start_address + i]      = (uint8_t)(ins1 >> (i * 8));
+                mem[start_address + 4 + i]  = (uint8_t)(ins2 >> (i * 8));
+                mem[start_address + 8 + i]  = (uint8_t)(ins3 >> (i * 8));
+                mem[start_address + 12 + i] = 0;
+            }
+        }
 
         cpu.regs[REG_INX_PC] = start_address - 4;
 
-        fetch(&cpu, &ret_ins);
-        advance_pc_or_update_i_flags(&cpu);
-        TEST_ASSERT_EQUAL_HEX32(0, ret_ins);
+        const uint32_t expected[] = {0, ins1, ins2, ins3, 0};
 
-        fetch(&cpu, &ret_ins);
-        advance_pc_or_update_i_flags(&cpu);
-        TEST_ASSERT_EQUAL_HEX32(ins1, ret_ins);
+        for(size_t n = 0; n < sizeof(expected) / sizeof(expected[0]); n++) {
+            ret_ins = 0;
 
-        fetch(&cpu, &ret_ins);
-        advance_pc_or_update_i_flags(&cpu);
-        TEST_ASSERT_EQUAL_HEX32(ins2, ret_ins);
+            fetch(&cpu, &ret_ins);
+            sysbus_step(cpu.ref_sysbus);
+            for(int i = 0; i < 4; i++) {
+                fetch(&cpu, &ret_ins);
+                sysbus_step(cpu.ref_sysbus);
+            }
 
-        fetch(&cpu, &ret_ins);
-        advance_pc_or_update_i_flags(&cpu);
-        TEST_ASSERT_EQUAL_HEX32(ins3, ret_ins);
-
-        fetch(&cpu, &ret_ins);
-        advance_pc_or_update_i_flags(&cpu);
-        TEST_ASSERT_EQUAL_HEX32(0, ret_ins);
+            TEST_ASSERT_EQUAL_HEX32(expected[n], ret_ins);
+            advance_pc_or_update_i_flags(&cpu);
+        }
     }
 }
 
@@ -1235,9 +1281,9 @@ void test_execution_handlers_table()
 {
     {
         //sll
-        struct decoded_rv64_base_ins_r *ins = calloc(1, sizeof(*ins));
-        struct rv64_cpu cpu                 = {0};
-        init_rv64_cpu(&cpu, NULL);
+        struct decoded_rv64_base_ins_r *ins         = calloc(1, sizeof(*ins));
+        _cleanup_free_rv64_cpu_ struct rv64_cpu cpu = {0};
+        init_rv64_cpu(&cpu, NULL, NULL);
 
         ins->func3  = SLL_FUNC3;
         ins->func7  = SLL_FUNC7;
@@ -1262,220 +1308,421 @@ void test_execution_handlers_table()
 void test_execute_ld()
 {
     {
-        struct decoded_rv64_base_ins_i *ins = calloc(1, sizeof(*ins));
-        struct rv64_cpu cpu                 = {0};
-        init_rv64_cpu(&cpu, NULL);
-        char mem[] =
+        _cleanup_free_ struct decoded_rv64_base_ins_i *ins =
+            calloc(1, sizeof(*ins));
+        struct decoded_rv64_base_ins_i *copy_ins      = NULL;
+        _cleanup_freep_rv64_cpu_ struct rv64_cpu *cpu = calloc(1, sizeof(*cpu));
+        _cleanup_freep_sysbus_ struct sysbus *sbus    = NULL;
+        char data[] =
             "\x11\x22\x33\x44\x55\x66\x77\x88\x99\xaa\xbb\xcc\xdd\xee\xff\x00";
+        char *mem          = NULL;
+        uint64_t base_addr = 3;
+        uint64_t offset    = 1;
 
-        memcpy(cpu.mem, mem, sizeof(mem));
+        sbus = simple_setup_sysbus_with_mem(data, sizeof(data));
+        init_rv64_cpu(cpu, sbus, NULL);
 
-        ins->imm    = 1;
+        {
+            struct io_dev *mem_dev = sbus->io_devs->data;
+            mem                    = (char *)mem_dev->meta_data->exposed_memory;
+        }
+
+        ins->imm    = offset;
         ins->rd     = 1;
         ins->rs1    = 2;
         ins->func3  = LD_FUNC3;
         ins->opcode = LOAD;
 
-        cpu.regs[ins->rs1] = 3;
+        cpu->regs[ins->rs1] = base_addr;
 
-        execute_ld(&cpu, (void **)&ins);
+        // first cycle, which no data is fetched and only address is given to the sysbus
+        copy_ins = calloc(1, sizeof(*ins));
+        memcpy(copy_ins, ins, sizeof(*ins));
+        execute_ld(cpu, (void **)&copy_ins);
+        sysbus_step(cpu->ref_sysbus);
+        TEST_ASSERT_NULL(copy_ins);
+        TEST_ASSERT_EQUAL(0, cpu->i_flags.pc_updated);
+        TEST_ASSERT_EQUAL(true, cpu->i_flags.stall);
 
-        TEST_ASSERT_EQUAL_HEX64(*(uint64_t *)(mem + 3 + 1), cpu.regs[1]);
-        TEST_ASSERT_NULL(ins);
-        TEST_ASSERT_EQUAL(0, cpu.i_flags.pc_updated);
+        for(int i = 0; i < 8; i++) {
+            copy_ins = calloc(1, sizeof(*ins));
+            memcpy(copy_ins, ins, sizeof(*ins));
+
+            execute_ld(cpu, (void **)&copy_ins);
+            sysbus_step(cpu->ref_sysbus);
+
+            TEST_ASSERT_EQUAL_HEX64(
+                *(uint8_t *)(mem + base_addr + offset + i),
+                (cpu->regs[1] >> (i * 8)) & 0xff);
+
+            TEST_ASSERT_NULL(copy_ins);
+            TEST_ASSERT_EQUAL(0, cpu->i_flags.pc_updated);
+            TEST_ASSERT_EQUAL(i < 7, cpu->i_flags.stall);
+        }
+
+        TEST_ASSERT_EQUAL_HEX64(
+            *(uint64_t *)(mem + base_addr + offset), cpu->regs[1]);
     }
 }
 
+// Replaces test_execute_lw .. test_execute_sb in tests/cpu/cpu.c.
+// Keep your existing test_execute_ld as it is.
+
 void test_execute_lw()
 {
-    {
-        struct decoded_rv64_base_ins_i *ins = calloc(1, sizeof(*ins));
-        struct rv64_cpu cpu                 = {0};
-        init_rv64_cpu(&cpu, NULL);
+    _cleanup_free_ struct decoded_rv64_base_ins_i *ins =
+        calloc(1, sizeof(*ins));
+    struct decoded_rv64_base_ins_i *copy_ins      = NULL;
+    _cleanup_freep_rv64_cpu_ struct rv64_cpu *cpu = calloc(1, sizeof(*cpu));
+    _cleanup_freep_sysbus_ struct sysbus *sbus    = NULL;
+    char data[] =
+        "\x11\x22\x33\x44\x55\x66\x77\x88\x99\xaa\xbb\xcc\xdd\xee\xff\x00";
+    char *mem          = NULL;
+    uint64_t base_addr = 10;
+    uint64_t offset    = 1;
 
-        // WARNING: little endian dependent test
-        char mem[] =
-            "\x11\x22\x33\x44\x55\x66\x77\x88\x99\xaa\xbb\xcc\xdd\xee\xff\x00";
+    sbus = simple_setup_sysbus_with_mem(data, sizeof(data));
+    init_rv64_cpu(cpu, sbus, NULL);
 
-        memcpy(cpu.mem, mem, sizeof(mem));
+    struct io_dev *mem_dev = sbus->io_devs->data;
+    mem                    = (char *)mem_dev->meta_data->exposed_memory;
 
-        ins->imm    = 1;
-        ins->rd     = 1;
-        ins->rs1    = 2;
-        ins->func3  = LW_FUNC3;
-        ins->opcode = LOAD;
+    ins->imm    = offset;
+    ins->rd     = 1;
+    ins->rs1    = 2;
+    ins->func3  = LW_FUNC3;
+    ins->opcode = LOAD;
 
-        cpu.regs[ins->rs1] = 10;
+    cpu->regs[ins->rs1] = base_addr;
 
-        execute_lw(&cpu, (void **)&ins);
+    // first cycle, which no data is fetched and only address is given to the sysbus
+    copy_ins = calloc(1, sizeof(*ins));
+    memcpy(copy_ins, ins, sizeof(*ins));
+    execute_lw(cpu, (void **)&copy_ins);
+    sysbus_step(cpu->ref_sysbus);
+    TEST_ASSERT_NULL(copy_ins);
+    TEST_ASSERT_EQUAL(0, cpu->i_flags.pc_updated);
+    TEST_ASSERT_EQUAL(true, cpu->i_flags.stall);
 
-        uint64_t expected = sign_extend_u32_to_u64(*(uint32_t *)(mem + 10 + 1));
-        TEST_ASSERT_EQUAL_HEX64(expected, cpu.regs[1]);
-        TEST_ASSERT_NULL(ins);
-        TEST_ASSERT_EQUAL(0, cpu.i_flags.pc_updated);
+    for(int i = 0; i < 4; i++) {
+        copy_ins = calloc(1, sizeof(*ins));
+        memcpy(copy_ins, ins, sizeof(*ins));
+
+        execute_lw(cpu, (void **)&copy_ins);
+        sysbus_step(cpu->ref_sysbus);
+
+        TEST_ASSERT_EQUAL_HEX8(
+            (uint8_t)mem[base_addr + offset + i],
+            (cpu->regs[1] >> (i * 8)) & 0xff);
+
+        TEST_ASSERT_NULL(copy_ins);
+        TEST_ASSERT_EQUAL(0, cpu->i_flags.pc_updated);
+        TEST_ASSERT_EQUAL(i < 3, cpu->i_flags.stall);
     }
+
+    uint32_t raw = 0;
+    for(int i = 0; i < 4; i++) {
+        raw |= (uint32_t)(uint8_t)mem[base_addr + offset + i] << (i * 8);
+    }
+
+    TEST_ASSERT_EQUAL_HEX64(sign_extend_u32_to_u64(raw), cpu->regs[1]);
 }
 
 void test_execute_lwu()
 {
-    struct decoded_rv64_base_ins_i *ins = calloc(1, sizeof(*ins));
-    struct rv64_cpu cpu                 = {0};
-    init_rv64_cpu(&cpu, NULL);
-
-    // WARNING: little endian dependent test
-    char mem[] =
+    _cleanup_free_ struct decoded_rv64_base_ins_i *ins =
+        calloc(1, sizeof(*ins));
+    struct decoded_rv64_base_ins_i *copy_ins      = NULL;
+    _cleanup_freep_rv64_cpu_ struct rv64_cpu *cpu = calloc(1, sizeof(*cpu));
+    _cleanup_freep_sysbus_ struct sysbus *sbus    = NULL;
+    char data[] =
         "\x11\x22\x33\x44\x55\x66\x77\x88\x99\xaa\xbb\xcc\xdd\xee\xff\x00";
+    char *mem          = NULL;
+    uint64_t base_addr = 10;
+    uint64_t offset    = 1;
 
-    memcpy(cpu.mem, mem, sizeof(mem));
+    sbus = simple_setup_sysbus_with_mem(data, sizeof(data));
+    init_rv64_cpu(cpu, sbus, NULL);
 
-    ins->imm    = 1;
+    struct io_dev *mem_dev = sbus->io_devs->data;
+    mem                    = (char *)mem_dev->meta_data->exposed_memory;
+
+    ins->imm    = offset;
     ins->rd     = 1;
     ins->rs1    = 2;
     ins->func3  = LWU_FUNC3;
     ins->opcode = LOAD;
 
-    cpu.regs[ins->rs1] = 10;
+    cpu->regs[ins->rs1] = base_addr;
 
-    execute_lwu(&cpu, (void **)&ins);
+    // first cycle, which no data is fetched and only address is given to the sysbus
+    copy_ins = calloc(1, sizeof(*ins));
+    memcpy(copy_ins, ins, sizeof(*ins));
+    execute_lwu(cpu, (void **)&copy_ins);
+    sysbus_step(cpu->ref_sysbus);
+    TEST_ASSERT_NULL(copy_ins);
+    TEST_ASSERT_EQUAL(0, cpu->i_flags.pc_updated);
+    TEST_ASSERT_EQUAL(true, cpu->i_flags.stall);
 
-    uint64_t expected = (*(uint32_t *)(mem + 10 + 1));
-    TEST_ASSERT_EQUAL_HEX64(expected, cpu.regs[1]);
-    TEST_ASSERT_NULL(ins);
-    TEST_ASSERT_EQUAL(0, cpu.i_flags.pc_updated);
+    for(int i = 0; i < 4; i++) {
+        copy_ins = calloc(1, sizeof(*ins));
+        memcpy(copy_ins, ins, sizeof(*ins));
+
+        execute_lwu(cpu, (void **)&copy_ins);
+        sysbus_step(cpu->ref_sysbus);
+
+        TEST_ASSERT_EQUAL_HEX8(
+            (uint8_t)mem[base_addr + offset + i],
+            (cpu->regs[1] >> (i * 8)) & 0xff);
+
+        TEST_ASSERT_NULL(copy_ins);
+        TEST_ASSERT_EQUAL(0, cpu->i_flags.pc_updated);
+        TEST_ASSERT_EQUAL(i < 3, cpu->i_flags.stall);
+    }
+
+    uint32_t raw = 0;
+    for(int i = 0; i < 4; i++) {
+        raw |= (uint32_t)(uint8_t)mem[base_addr + offset + i] << (i * 8);
+    }
+
+    TEST_ASSERT_EQUAL_HEX64((uint64_t)raw, cpu->regs[1]);
 }
 
 void test_execute_lh()
 {
-    {
-        struct decoded_rv64_base_ins_i *ins = calloc(1, sizeof(*ins));
-        struct rv64_cpu cpu                 = {0};
-        init_rv64_cpu(&cpu, NULL);
+    _cleanup_free_ struct decoded_rv64_base_ins_i *ins =
+        calloc(1, sizeof(*ins));
+    struct decoded_rv64_base_ins_i *copy_ins      = NULL;
+    _cleanup_freep_rv64_cpu_ struct rv64_cpu *cpu = calloc(1, sizeof(*cpu));
+    _cleanup_freep_sysbus_ struct sysbus *sbus    = NULL;
+    char data[] =
+        "\x11\x22\x33\x44\x55\x66\x77\x88\x99\xaa\xbb\xcc\xdd\xee\xff\x00";
+    char *mem          = NULL;
+    uint64_t base_addr = 10;
+    uint64_t offset    = 3;
 
-        // WARNING: little endian dependent test
-        char mem[] =
-            "\x11\x22\x33\x44\x55\x66\x77\x88\x99\xaa\xbb\xcc\xdd\xee\xff\x00";
+    sbus = simple_setup_sysbus_with_mem(data, sizeof(data));
+    init_rv64_cpu(cpu, sbus, NULL);
 
-        memcpy(cpu.mem, mem, sizeof(mem));
+    struct io_dev *mem_dev = sbus->io_devs->data;
+    mem                    = (char *)mem_dev->meta_data->exposed_memory;
 
-        ins->imm    = 3;
-        ins->rd     = 1;
-        ins->rs1    = 2;
-        ins->func3  = LH_FUNC3;
-        ins->opcode = LOAD;
+    ins->imm    = offset;
+    ins->rd     = 1;
+    ins->rs1    = 2;
+    ins->func3  = LH_FUNC3;
+    ins->opcode = LOAD;
 
-        cpu.regs[ins->rs1] = 10;
+    cpu->regs[ins->rs1] = base_addr;
 
-        execute_lh(&cpu, (void **)&ins);
+    // first cycle, which no data is fetched and only address is given to the sysbus
+    copy_ins = calloc(1, sizeof(*ins));
+    memcpy(copy_ins, ins, sizeof(*ins));
+    execute_lh(cpu, (void **)&copy_ins);
+    sysbus_step(cpu->ref_sysbus);
+    TEST_ASSERT_NULL(copy_ins);
+    TEST_ASSERT_EQUAL(0, cpu->i_flags.pc_updated);
+    TEST_ASSERT_EQUAL(true, cpu->i_flags.stall);
 
-        uint64_t expected = sign_extend_u16_to_u64(*(uint16_t *)(mem + 10 + 3));
-        TEST_ASSERT_EQUAL_HEX64(expected, cpu.regs[1]);
-        TEST_ASSERT_NULL(ins);
-        TEST_ASSERT_EQUAL(0, cpu.i_flags.pc_updated);
+    for(int i = 0; i < 2; i++) {
+        copy_ins = calloc(1, sizeof(*ins));
+        memcpy(copy_ins, ins, sizeof(*ins));
+
+        execute_lh(cpu, (void **)&copy_ins);
+        sysbus_step(cpu->ref_sysbus);
+
+        TEST_ASSERT_EQUAL_HEX8(
+            (uint8_t)mem[base_addr + offset + i],
+            (cpu->regs[1] >> (i * 8)) & 0xff);
+
+        TEST_ASSERT_NULL(copy_ins);
+        TEST_ASSERT_EQUAL(0, cpu->i_flags.pc_updated);
+        TEST_ASSERT_EQUAL(i < 1, cpu->i_flags.stall);
     }
+
+    uint16_t raw = (uint16_t)(uint8_t)mem[base_addr + offset] |
+                   ((uint16_t)(uint8_t)mem[base_addr + offset + 1] << 8);
+
+    TEST_ASSERT_EQUAL_HEX64(sign_extend_u16_to_u64(raw), cpu->regs[1]);
 }
 
 void test_execute_lhu()
 {
-    {
-        struct decoded_rv64_base_ins_i *ins = calloc(1, sizeof(*ins));
-        struct rv64_cpu cpu                 = {0};
-        init_rv64_cpu(&cpu, NULL);
+    _cleanup_free_ struct decoded_rv64_base_ins_i *ins =
+        calloc(1, sizeof(*ins));
+    struct decoded_rv64_base_ins_i *copy_ins      = NULL;
+    _cleanup_freep_rv64_cpu_ struct rv64_cpu *cpu = calloc(1, sizeof(*cpu));
+    _cleanup_freep_sysbus_ struct sysbus *sbus    = NULL;
+    char data[] =
+        "\x11\x22\x33\x44\x55\x66\x77\x88\x99\xaa\xbb\xcc\xdd\xee\xff\x00";
+    char *mem          = NULL;
+    uint64_t base_addr = 10;
+    uint64_t offset    = 3;
 
-        // WARNING: little endian dependent test
-        char mem[] =
-            "\x11\x22\x33\x44\x55\x66\x77\x88\x99\xaa\xbb\xcc\xdd\xee\xff\x00";
+    sbus = simple_setup_sysbus_with_mem(data, sizeof(data));
+    init_rv64_cpu(cpu, sbus, NULL);
 
-        memcpy(cpu.mem, mem, sizeof(mem));
+    struct io_dev *mem_dev = sbus->io_devs->data;
+    mem                    = (char *)mem_dev->meta_data->exposed_memory;
 
-        ins->imm    = 3;
-        ins->rd     = 1;
-        ins->rs1    = 2;
-        ins->func3  = LHU_FUNC3;
-        ins->opcode = LOAD;
+    ins->imm    = offset;
+    ins->rd     = 1;
+    ins->rs1    = 2;
+    ins->func3  = LHU_FUNC3;
+    ins->opcode = LOAD;
 
-        cpu.regs[ins->rs1] = 10;
+    cpu->regs[ins->rs1] = base_addr;
 
-        execute_lhu(&cpu, (void **)&ins);
+    // first cycle, which no data is fetched and only address is given to the sysbus
+    copy_ins = calloc(1, sizeof(*ins));
+    memcpy(copy_ins, ins, sizeof(*ins));
+    execute_lhu(cpu, (void **)&copy_ins);
+    sysbus_step(cpu->ref_sysbus);
+    TEST_ASSERT_NULL(copy_ins);
+    TEST_ASSERT_EQUAL(0, cpu->i_flags.pc_updated);
+    TEST_ASSERT_EQUAL(true, cpu->i_flags.stall);
 
-        uint64_t expected = (*(uint16_t *)(mem + 10 + 3));
-        TEST_ASSERT_EQUAL_HEX64(expected, cpu.regs[1]);
-        TEST_ASSERT_NULL(ins);
-        TEST_ASSERT_EQUAL(0, cpu.i_flags.pc_updated);
+    for(int i = 0; i < 2; i++) {
+        copy_ins = calloc(1, sizeof(*ins));
+        memcpy(copy_ins, ins, sizeof(*ins));
+
+        execute_lhu(cpu, (void **)&copy_ins);
+        sysbus_step(cpu->ref_sysbus);
+
+        TEST_ASSERT_EQUAL_HEX8(
+            (uint8_t)mem[base_addr + offset + i],
+            (cpu->regs[1] >> (i * 8)) & 0xff);
+
+        TEST_ASSERT_NULL(copy_ins);
+        TEST_ASSERT_EQUAL(0, cpu->i_flags.pc_updated);
+        TEST_ASSERT_EQUAL(i < 1, cpu->i_flags.stall);
     }
+
+    uint16_t expected = (uint16_t)(uint8_t)mem[base_addr + offset] |
+                        ((uint16_t)(uint8_t)mem[base_addr + offset + 1] << 8);
+
+    TEST_ASSERT_EQUAL_HEX64(expected, cpu->regs[1]);
 }
 
 void test_execute_lb()
 {
-    {
-        struct decoded_rv64_base_ins_i *ins = calloc(1, sizeof(*ins));
-        struct rv64_cpu cpu                 = {0};
-        init_rv64_cpu(&cpu, NULL);
+    _cleanup_free_ struct decoded_rv64_base_ins_i *ins =
+        calloc(1, sizeof(*ins));
+    struct decoded_rv64_base_ins_i *copy_ins      = NULL;
+    _cleanup_freep_rv64_cpu_ struct rv64_cpu *cpu = calloc(1, sizeof(*cpu));
+    _cleanup_freep_sysbus_ struct sysbus *sbus    = NULL;
+    char data[] =
+        "\x11\x22\x33\x44\x55\x66\x77\x88\x99\xaa\xbb\xcc\xdd\xee\xff\x00";
+    char *mem          = NULL;
+    uint64_t base_addr = 10;
+    uint64_t offset    = 4;
 
-        // WARNING: little endian dependent test
-        char mem[] =
-            "\x11\x22\x33\x44\x55\x66\x77\x88\x99\xaa\xbb\xcc\xdd\xee\xff\x00";
+    sbus = simple_setup_sysbus_with_mem(data, sizeof(data));
+    init_rv64_cpu(cpu, sbus, NULL);
 
-        memcpy(cpu.mem, mem, sizeof(mem));
+    struct io_dev *mem_dev = sbus->io_devs->data;
+    mem                    = (char *)mem_dev->meta_data->exposed_memory;
 
-        ins->imm    = 4;
-        ins->rd     = 1;
-        ins->rs1    = 2;
-        ins->func3  = LBU_FUNC3;
-        ins->opcode = LOAD;
+    ins->imm    = offset;
+    ins->rd     = 1;
+    ins->rs1    = 2;
+    ins->func3  = LB_FUNC3;
+    ins->opcode = LOAD;
 
-        cpu.regs[ins->rs1] = 10;
+    cpu->regs[ins->rs1] = base_addr;
 
-        execute_lb(&cpu, (void **)&ins);
+    // first cycle, which no data is fetched and only address is given to the sysbus
+    copy_ins = calloc(1, sizeof(*ins));
+    memcpy(copy_ins, ins, sizeof(*ins));
+    execute_lb(cpu, (void **)&copy_ins);
+    sysbus_step(cpu->ref_sysbus);
+    TEST_ASSERT_NULL(copy_ins);
+    TEST_ASSERT_EQUAL(0, cpu->i_flags.pc_updated);
+    TEST_ASSERT_EQUAL(true, cpu->i_flags.stall);
 
-        uint64_t expected = sign_extend_u8_to_u64(*(uint8_t *)(mem + 10 + 4));
-        TEST_ASSERT_EQUAL_HEX64(expected, cpu.regs[1]);
-        TEST_ASSERT_NULL(ins);
-        TEST_ASSERT_EQUAL(0, cpu.i_flags.pc_updated);
-    }
+    // second cycle, the byte is consumed
+    copy_ins = calloc(1, sizeof(*ins));
+    memcpy(copy_ins, ins, sizeof(*ins));
+    execute_lb(cpu, (void **)&copy_ins);
+    sysbus_step(cpu->ref_sysbus);
+
+    TEST_ASSERT_EQUAL_HEX64(
+        sign_extend_u8_to_u64((uint8_t)mem[base_addr + offset]), cpu->regs[1]);
+    TEST_ASSERT_NULL(copy_ins);
+    TEST_ASSERT_EQUAL(0, cpu->i_flags.pc_updated);
+    TEST_ASSERT_EQUAL(0, cpu->i_flags.stall);
 }
 
 void test_execute_lbu()
 {
-    {
-        struct decoded_rv64_base_ins_i *ins = calloc(1, sizeof(*ins));
-        struct rv64_cpu cpu                 = {0};
-        init_rv64_cpu(&cpu, NULL);
+    _cleanup_free_ struct decoded_rv64_base_ins_i *ins =
+        calloc(1, sizeof(*ins));
+    struct decoded_rv64_base_ins_i *copy_ins      = NULL;
+    _cleanup_freep_rv64_cpu_ struct rv64_cpu *cpu = calloc(1, sizeof(*cpu));
+    _cleanup_freep_sysbus_ struct sysbus *sbus    = NULL;
+    char data[] =
+        "\x11\x22\x33\x44\x55\x66\x77\x88\x99\xaa\xbb\xcc\xdd\xee\xff\x00";
+    char *mem          = NULL;
+    uint64_t base_addr = 10;
+    uint64_t offset    = 4;
 
-        // WARNING: little endian dependent test
-        char mem[] =
-            "\x11\x22\x33\x44\x55\x66\x77\x88\x99\xaa\xbb\xcc\xdd\xee\xff\x00";
+    sbus = simple_setup_sysbus_with_mem(data, sizeof(data));
+    init_rv64_cpu(cpu, sbus, NULL);
 
-        memcpy(cpu.mem, mem, sizeof(mem));
+    struct io_dev *mem_dev = sbus->io_devs->data;
+    mem                    = (char *)mem_dev->meta_data->exposed_memory;
 
-        ins->imm    = 4;
-        ins->rd     = 1;
-        ins->rs1    = 2;
-        ins->func3  = LBU_FUNC3;
-        ins->opcode = LOAD;
+    ins->imm    = offset;
+    ins->rd     = 1;
+    ins->rs1    = 2;
+    ins->func3  = LBU_FUNC3;
+    ins->opcode = LOAD;
 
-        cpu.regs[ins->rs1] = 10;
+    cpu->regs[ins->rs1] = base_addr;
 
-        execute_lbu(&cpu, (void **)&ins);
+    // first cycle, which no data is fetched and only address is given to the sysbus
+    copy_ins = calloc(1, sizeof(*ins));
+    memcpy(copy_ins, ins, sizeof(*ins));
+    execute_lbu(cpu, (void **)&copy_ins);
+    sysbus_step(cpu->ref_sysbus);
+    TEST_ASSERT_NULL(copy_ins);
+    TEST_ASSERT_EQUAL(0, cpu->i_flags.pc_updated);
+    TEST_ASSERT_EQUAL(true, cpu->i_flags.stall);
 
-        uint64_t expected = (*(uint8_t *)(mem + 10 + 4));
-        TEST_ASSERT_EQUAL_HEX64(expected, cpu.regs[1]);
-        TEST_ASSERT_NULL(ins);
-        TEST_ASSERT_EQUAL(0, cpu.i_flags.pc_updated);
-    }
+    // second cycle, the byte is consumed
+    copy_ins = calloc(1, sizeof(*ins));
+    memcpy(copy_ins, ins, sizeof(*ins));
+    execute_lbu(cpu, (void **)&copy_ins);
+    sysbus_step(cpu->ref_sysbus);
+
+    TEST_ASSERT_EQUAL_HEX64((uint8_t)mem[base_addr + offset], cpu->regs[1]);
+    TEST_ASSERT_NULL(copy_ins);
+    TEST_ASSERT_EQUAL(0, cpu->i_flags.pc_updated);
+    TEST_ASSERT_EQUAL(0, cpu->i_flags.stall);
 }
 
 void test_execute_sd()
 {
     {
-        struct decoded_rv64_base_ins_s *ins = calloc(1, sizeof(*ins));
-        struct rv64_cpu cpu                 = {0};
-        init_rv64_cpu(&cpu, NULL);
+        _cleanup_free_ struct decoded_rv64_base_ins_s *ins =
+            calloc(1, sizeof(*ins));
+        struct decoded_rv64_base_ins_s *copy_ins      = NULL;
+        _cleanup_freep_rv64_cpu_ struct rv64_cpu *cpu = calloc(1, sizeof(*cpu));
+        _cleanup_freep_sysbus_ struct sysbus *sbus    = NULL;
 
-        // WARNING: little endian dependent test
-        char mem[] =
-            "\x11\x22\x33\x44\x55\x66\x77\x88\x99\xaa\xbb\xcc\xdd\xee\xff\x00";
+        char data[]        = "\x00\x00\x00\x00\x00\x00\x00\x00"
+                             "\x00\x00\x00\x00\x00\x00\x00\x00";
+        uint8_t *mem       = NULL;
+        uint64_t base_addr = 4;
+        uint64_t value     = 0x88'77'66'55'44'33'22'11;
 
-        memcpy(cpu.mem, mem, sizeof(mem));
+        sbus = simple_setup_sysbus_with_mem(data, sizeof(data));
+        init_rv64_cpu(cpu, sbus, NULL);
+
+        {
+            struct io_dev *mem_dev = sbus->io_devs->data;
+            mem                    = mem_dev->meta_data->exposed_memory;
+        }
 
         ins->imm    = 0;
         ins->rs1    = 1;
@@ -1483,31 +1730,53 @@ void test_execute_sd()
         ins->func3  = SD_FUNC3;
         ins->opcode = STORE;
 
-        cpu.regs[ins->rs1] = 4;
-        cpu.regs[ins->rs2] = 0;
+        cpu->regs[ins->rs1] = base_addr;
+        cpu->regs[ins->rs2] = value;
 
-        execute_sd(&cpu, (void **)&ins);
+        for(int i = 0; i < 8; i++) {
+            copy_ins = calloc(1, sizeof(*ins));
+            memcpy(copy_ins, ins, sizeof(*ins));
 
-        uint64_t got = 0;
-        read_mem64(&cpu, 4, &got);
-        TEST_ASSERT_EQUAL_HEX64(0, got);
-        TEST_ASSERT_NULL(ins);
-        TEST_ASSERT_EQUAL(0, cpu.i_flags.pc_updated);
+            execute_sd(cpu, (void **)&copy_ins);
+            sysbus_step(cpu->ref_sysbus);
+
+            TEST_ASSERT_EQUAL_HEX8(
+                (value >> (i * 8)) & 0xff, mem[base_addr + i]);
+            TEST_ASSERT_NULL(copy_ins);
+            TEST_ASSERT_EQUAL(0, cpu->i_flags.pc_updated);
+            TEST_ASSERT_EQUAL(i < 7, cpu->i_flags.stall);
+        }
+
+        uint64_t actual = 0;
+        for(int i = 0; i < 8; i++) {
+            actual |= (uint64_t)mem[base_addr + i] << (i * 8);
+        }
+        TEST_ASSERT_EQUAL_HEX64(value, actual);
     }
 }
 
 void test_execute_sw()
 {
     {
-        struct decoded_rv64_base_ins_s *ins = calloc(1, sizeof(*ins));
-        struct rv64_cpu cpu                 = {0};
-        init_rv64_cpu(&cpu, NULL);
+        _cleanup_free_ struct decoded_rv64_base_ins_s *ins =
+            calloc(1, sizeof(*ins));
+        struct decoded_rv64_base_ins_s *copy_ins      = NULL;
+        _cleanup_freep_rv64_cpu_ struct rv64_cpu *cpu = calloc(1, sizeof(*cpu));
+        _cleanup_freep_sysbus_ struct sysbus *sbus    = NULL;
 
-        // WARNING: little endian dependent test
-        char mem[] =
-            "\x11\x22\x33\x44\x55\x66\x77\x88\x99\xaa\xbb\xcc\xdd\xee\xff\x00";
+        char data[]        = "\x00\x00\x00\x00\x00\x00\x00\x00"
+                             "\x00\x00\x00\x00\x00\x00\x00\x00";
+        uint8_t *mem       = NULL;
+        uint64_t base_addr = 2;
+        uint32_t value     = UINT32_C(0x44332211);
 
-        memcpy(cpu.mem, mem, sizeof(mem));
+        sbus = simple_setup_sysbus_with_mem(data, sizeof(data));
+        init_rv64_cpu(cpu, sbus, NULL);
+
+        {
+            struct io_dev *mem_dev = sbus->io_devs->data;
+            mem                    = mem_dev->meta_data->exposed_memory;
+        }
 
         ins->imm    = 0;
         ins->rs1    = 1;
@@ -1515,31 +1784,53 @@ void test_execute_sw()
         ins->func3  = SW_FUNC3;
         ins->opcode = STORE;
 
-        cpu.regs[ins->rs1] = 4;
-        cpu.regs[ins->rs2] = 0xff'ff'ff'ff'00'00'00'00;
+        cpu->regs[ins->rs1] = base_addr;
+        cpu->regs[ins->rs2] = value;
 
-        execute_sw(&cpu, (void **)&ins);
+        for(int i = 0; i < 4; i++) {
+            copy_ins = calloc(1, sizeof(*ins));
+            memcpy(copy_ins, ins, sizeof(*ins));
 
-        uint32_t got = 0;
-        read_mem32(&cpu, 4, &got);
-        TEST_ASSERT_EQUAL_HEX64(0, got);
-        TEST_ASSERT_NULL(ins);
-        TEST_ASSERT_EQUAL(0, cpu.i_flags.pc_updated);
+            execute_sw(cpu, (void **)&copy_ins);
+            sysbus_step(cpu->ref_sysbus);
+
+            TEST_ASSERT_EQUAL_HEX8(
+                (value >> (i * 8)) & UINT32_C(0xff), mem[base_addr + i]);
+            TEST_ASSERT_NULL(copy_ins);
+            TEST_ASSERT_EQUAL(0, cpu->i_flags.pc_updated);
+            TEST_ASSERT_EQUAL(i < 3, cpu->i_flags.stall);
+        }
+
+        uint32_t actual = 0;
+        for(int i = 0; i < 4; i++) {
+            actual |= (uint32_t)mem[base_addr + i] << (i * 8);
+        }
+        TEST_ASSERT_EQUAL_HEX32(value, actual);
     }
 }
 
 void test_execute_sh()
 {
     {
-        struct decoded_rv64_base_ins_s *ins = calloc(1, sizeof(*ins));
-        struct rv64_cpu cpu                 = {0};
-        init_rv64_cpu(&cpu, NULL);
+        _cleanup_free_ struct decoded_rv64_base_ins_s *ins =
+            calloc(1, sizeof(*ins));
+        struct decoded_rv64_base_ins_s *copy_ins      = NULL;
+        _cleanup_freep_rv64_cpu_ struct rv64_cpu *cpu = calloc(1, sizeof(*cpu));
+        _cleanup_freep_sysbus_ struct sysbus *sbus    = NULL;
 
-        // WARNING: little endian dependent test
-        char mem[] =
-            "\x11\x22\x33\x44\x55\x66\x77\x88\x99\xaa\xbb\xcc\xdd\xee\xff\x00";
+        char data[]        = "\x00\x00\x00\x00\x00\x00\x00\x00"
+                             "\x00\x00\x00\x00\x00\x00\x00\x00";
+        uint8_t *mem       = NULL;
+        uint64_t base_addr = 2;
+        uint16_t value     = UINT16_C(0x2211);
 
-        memcpy(cpu.mem, mem, sizeof(mem));
+        sbus = simple_setup_sysbus_with_mem(data, sizeof(data));
+        init_rv64_cpu(cpu, sbus, NULL);
+
+        {
+            struct io_dev *mem_dev = sbus->io_devs->data;
+            mem                    = mem_dev->meta_data->exposed_memory;
+        }
 
         ins->imm    = 0;
         ins->rs1    = 1;
@@ -1547,31 +1838,53 @@ void test_execute_sh()
         ins->func3  = SH_FUNC3;
         ins->opcode = STORE;
 
-        cpu.regs[ins->rs1] = 4;
-        cpu.regs[ins->rs2] = 0xff'ff'ff'ff'ff'ff'00'00;
+        cpu->regs[ins->rs1] = base_addr;
+        cpu->regs[ins->rs2] = value;
 
-        execute_sh(&cpu, (void **)&ins);
+        for(int i = 0; i < 2; i++) {
+            copy_ins = calloc(1, sizeof(*ins));
+            memcpy(copy_ins, ins, sizeof(*ins));
 
-        uint16_t got = 0;
-        read_mem16(&cpu, 4, &got);
-        TEST_ASSERT_EQUAL_HEX64(0, got);
-        TEST_ASSERT_NULL(ins);
-        TEST_ASSERT_EQUAL(0, cpu.i_flags.pc_updated);
+            execute_sh(cpu, (void **)&copy_ins);
+            sysbus_step(cpu->ref_sysbus);
+
+            TEST_ASSERT_EQUAL_HEX8(
+                (value >> (i * 8)) & UINT16_C(0xff), mem[base_addr + i]);
+            TEST_ASSERT_NULL(copy_ins);
+            TEST_ASSERT_EQUAL(0, cpu->i_flags.pc_updated);
+            TEST_ASSERT_EQUAL(i < 1, cpu->i_flags.stall);
+        }
+
+        uint16_t actual = 0;
+        for(int i = 0; i < 2; i++) {
+            actual |= (uint16_t)mem[base_addr + i] << (i * 8);
+        }
+        TEST_ASSERT_EQUAL_HEX16(value, actual);
     }
 }
 
 void test_execute_sb()
 {
     {
-        struct decoded_rv64_base_ins_s *ins = calloc(1, sizeof(*ins));
-        struct rv64_cpu cpu                 = {0};
-        init_rv64_cpu(&cpu, NULL);
+        _cleanup_free_ struct decoded_rv64_base_ins_s *ins =
+            calloc(1, sizeof(*ins));
+        struct decoded_rv64_base_ins_s *copy_ins      = NULL;
+        _cleanup_freep_rv64_cpu_ struct rv64_cpu *cpu = calloc(1, sizeof(*cpu));
+        _cleanup_freep_sysbus_ struct sysbus *sbus    = NULL;
 
-        // WARNING: little endian dependent test
-        char mem[] =
-            "\x11\x22\x33\x44\x55\x66\x77\x88\x99\xaa\xbb\xcc\xdd\xee\xff\x00";
+        char data[]        = "\x00\x00\x00\x00\x00\x00\x00\x00"
+                             "\x00\x00\x00\x00\x00\x00\x00\x00";
+        uint8_t *mem       = NULL;
+        uint64_t base_addr = 2;
+        uint8_t value      = UINT8_C(0xaa);
 
-        memcpy(cpu.mem, mem, sizeof(mem));
+        sbus = simple_setup_sysbus_with_mem(data, sizeof(data));
+        init_rv64_cpu(cpu, sbus, NULL);
+
+        {
+            struct io_dev *mem_dev = sbus->io_devs->data;
+            mem                    = mem_dev->meta_data->exposed_memory;
+        }
 
         ins->imm    = 0;
         ins->rs1    = 1;
@@ -1579,19 +1892,21 @@ void test_execute_sb()
         ins->func3  = SB_FUNC3;
         ins->opcode = STORE;
 
-        cpu.regs[ins->rs1] = 4;
-        cpu.regs[ins->rs2] = 0xff'ff'ff'ff'ff'ff'ff'00;
+        cpu->regs[ins->rs1] = base_addr;
+        cpu->regs[ins->rs2] = value;
 
-        execute_sb(&cpu, (void **)&ins);
+        copy_ins = calloc(1, sizeof(*ins));
+        memcpy(copy_ins, ins, sizeof(*ins));
 
-        uint8_t got = 0;
-        read_mem8(&cpu, 4, &got);
-        TEST_ASSERT_EQUAL_HEX64(0, got);
-        TEST_ASSERT_NULL(ins);
-        TEST_ASSERT_EQUAL(0, cpu.i_flags.pc_updated);
+        execute_sb(cpu, (void **)&copy_ins);
+        sysbus_step(cpu->ref_sysbus);
+
+        TEST_ASSERT_EQUAL_HEX8(value, mem[base_addr]);
+        TEST_ASSERT_NULL(copy_ins);
+        TEST_ASSERT_EQUAL(0, cpu->i_flags.pc_updated);
+        TEST_ASSERT_EQUAL(0, cpu->i_flags.stall);
     }
 }
-
 int main(void)
 {
     UNITY_BEGIN();

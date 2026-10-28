@@ -1,0 +1,5 @@
+add_library(machine STATIC machine.c)
+target_link_libraries(machine PRIVATE cpu)
+target_link_libraries(machine PRIVATE helper)
+target_link_libraries(machine PRIVATE io_dev)
+target_include_directories(machine PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})

@@ -17,32 +17,32 @@ void io_devs_step(struct sysbus *_Nonnull self)
     LINKED_LIST_FOREACH(current_node, next_node, self->io_devs)
     {
         current_io_dev = current_node->data;
-        current_io_dev->meta_data.step(current_io_dev);
+        current_io_dev->meta_data->step(current_io_dev);
     }
 }
 
-bool is_address_inbounds_inclusive(
+bool is_address_inbounds_exclusive(
     uint64_t lowerbound, uint64_t upperbound, uint64_t address)
 {
     if(lowerbound < address && address < upperbound) {
         return true;
     }
-    if(lowerbound == address || address == upperbound) {
+    if(lowerbound == address) {
         return true;
     }
     return false;
 }
 
-bool is_address_inbounds_of_io_dev_inclusive(
+bool is_address_inbounds_of_io_dev_exclusive(
     const struct io_dev *_Nonnull dev, uint64_t address)
 {
     assert(dev);
 
-    uint64_t dev_base_addr = dev->meta_data.mapped_base_addr;
+    uint64_t dev_base_addr = dev->meta_data->mapped_base_addr;
     uint64_t dev_max_addr =
-        dev->meta_data.exposed_memory_length + dev_base_addr;
+        dev->meta_data->exposed_memory_length + dev_base_addr;
 
-    return is_address_inbounds_inclusive(dev_base_addr, dev_max_addr, address);
+    return is_address_inbounds_exclusive(dev_base_addr, dev_max_addr, address);
 }
 
 void sysbus_do_io_with_dev(
@@ -51,21 +51,26 @@ void sysbus_do_io_with_dev(
     assert(self);
     assert(dev);
 
-    uint64_t current_io_dev_base_addr = dev->meta_data.mapped_base_addr;
+    uint64_t current_io_dev_base_addr = dev->meta_data->mapped_base_addr;
     uint64_t current_io_dev_max_addr =
-        dev->meta_data.exposed_memory_length + current_io_dev_base_addr;
+        dev->meta_data->exposed_memory_length + current_io_dev_base_addr;
     uint64_t exposed_memory_offset = 0;
 
     exposed_memory_offset = self->address - current_io_dev_base_addr;
 
-    self->readdata = dev->meta_data.exposed_memory[exposed_memory_offset];
     if(self->memwrite) {
         logger(LOG_DEBUG, stdout, "writing to the following io dev:\n");
         if(current_log_level >= LOG_DEBUG) {
             __builtin_dump_struct(dev, printf);
         }
-        dev->meta_data.exposed_memory[exposed_memory_offset] = self->writedata;
+        dev->meta_data->exposed_memory[exposed_memory_offset] = self->writedata;
     }
+    logger(
+        LOG_DEBUG,
+        stdout,
+        "reading the following value: %lu\n",
+        self->readdata);
+    self->readdata = dev->meta_data->exposed_memory[exposed_memory_offset];
 }
 
 void sysbus_step(struct sysbus *_Nonnull self)
@@ -86,19 +91,24 @@ void sysbus_step(struct sysbus *_Nonnull self)
 
         logger(LOG_DEBUG, stdout, "matching self->address to io dev:\n");
         if(current_log_level >= LOG_DEBUG) {
-            __builtin_dump_struct(current_io_dev, printf);
+            debug_io_dev_dump(current_io_dev);
         }
 
-        if(is_address_inbounds_of_io_dev_inclusive(
+        if(is_address_inbounds_of_io_dev_exclusive(
                current_io_dev, self->address)) {
 
             logger(LOG_DEBUG, stdout, "matched\n");
             sysbus_do_io_with_dev(self, current_io_dev);
-            return;
+            goto end_of_step;
         }
     }
 
     logger(LOG_DEBUG, stdout, "no matched devices for self->address\n");
+end_of_step:
+    logger(LOG_DEBUG, stdout, "end of step self:\n");
+    if(current_log_level >= LOG_DEBUG) {
+        __builtin_dump_struct(self, printf);
+    }
 }
 
 int sysbus_memory_map_iodev(
@@ -110,9 +120,9 @@ int sysbus_memory_map_iodev(
 
     uint64_t current_io_dev_max_addr  = 0;
     uint64_t current_io_dev_base_addr = 0;
-    uint64_t to_map_io_dev_base_addr  = (*dev)->meta_data.mapped_base_addr;
+    uint64_t to_map_io_dev_base_addr  = (*dev)->meta_data->mapped_base_addr;
     uint64_t to_map_io_dev_max_addr =
-        to_map_io_dev_base_addr + (*dev)->meta_data.exposed_memory_length;
+        to_map_io_dev_base_addr + (*dev)->meta_data->exposed_memory_length;
     struct linked_list_node *dev_node_to_map = NULL;
 
     struct linked_list_node *current_node = NULL;
@@ -124,9 +134,9 @@ int sysbus_memory_map_iodev(
     LINKED_LIST_FOREACH(current_node, next_node, self->io_devs)
     {
         current_io_dev           = current_node->data;
-        current_io_dev_base_addr = current_io_dev->meta_data.mapped_base_addr;
+        current_io_dev_base_addr = current_io_dev->meta_data->mapped_base_addr;
         current_io_dev_max_addr =
-            current_io_dev->meta_data.exposed_memory_length +
+            current_io_dev->meta_data->exposed_memory_length +
             current_io_dev_base_addr;
 
         if(current_io_dev_base_addr <= to_map_io_dev_base_addr &&
@@ -159,9 +169,18 @@ void freep_sysbus(void *_Nonnull sysbus_voidpp)
         goto finish;
     }
 
-    linked_list_free(&sysbus->io_devs);
+    free_sysbus(sysbus);
     free(sysbus);
 
 finish:
     *sysbuspp = NULL;
+}
+
+void free_sysbus(void *_Nullable sysbus)
+{
+    struct sysbus *sbus = sysbus;
+    if(!sysbus) {
+        return;
+    }
+    linked_list_free(&sbus->io_devs);
 }

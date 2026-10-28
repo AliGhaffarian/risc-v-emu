@@ -1,10 +1,12 @@
 #include "linkedlist.h"
 #include "assert.h"
 #include "helper.h"
+#include "logger.h"
 #include <stdlib.h>
 
 void linked_list_append(
-    struct linked_list_node * _Nullable * _Nonnull head, struct linked_list_node * _Nullable * _Nonnull to_append)
+    struct linked_list_node *_Nullable *_Nonnull head,
+    struct linked_list_node *_Nullable *_Nonnull to_append)
 {
     assert(head);
     assert(to_append);
@@ -45,7 +47,7 @@ linked_list_make_node(void **data, void (*free_data)(void *))
     return tmp_node;
 }
 
-struct linked_list_node *linked_list_make_node_ref(void * _Nullable data)
+struct linked_list_node *linked_list_make_node_ref(void *_Nullable data)
 {
     struct linked_list_node *tmp_node =
         calloc(1, sizeof(struct linked_list_node));
@@ -64,13 +66,17 @@ struct linked_list_node *linked_list_make_node_ref(void * _Nullable data)
     return tmp_node;
 }
 
-void linked_list_free(struct linked_list_node * _Nullable * _Nonnull head)
+void linked_list_free(struct linked_list_node *_Nullable *_Nonnull head)
 {
     assert(head);
 
     struct linked_list_node *current = *head;
     struct linked_list_node *next    = current->next;
     while(current != (struct linked_list_node *)NULL) {
+        logger(LOG_DEBUG, stdout, "freeing the following:\n");
+        if(current_log_level >= LOG_DEBUG) {
+            __builtin_dump_struct(current, printf);
+        }
         next = current->next;
         if(current->free_data) {
             current->free_data(current->data);
@@ -84,7 +90,9 @@ void linked_list_free(struct linked_list_node * _Nullable * _Nonnull head)
 }
 
 int linked_list_replace_at(
-    struct linked_list_node * _Nullable * _Nonnull head, struct linked_list_node * _Nonnull * _Nonnull to_insert, int at)
+    struct linked_list_node *_Nullable *_Nonnull head,
+    struct linked_list_node *_Nonnull *_Nonnull to_insert,
+    int at)
 {
     assert(head);
     assert(to_insert);
@@ -139,7 +147,7 @@ int linked_list_replace_at(
 }
 
 struct linked_list_node *
-linked_list_get_at(struct linked_list_node * _Nonnull head, int at)
+linked_list_get_at(struct linked_list_node *_Nonnull head, int at)
 {
     assert(head);
 
@@ -156,7 +164,8 @@ linked_list_get_at(struct linked_list_node * _Nonnull head, int at)
 }
 
 void linked_list_push_front(
-    struct linked_list_node * _Nullable * _Nonnull head, struct linked_list_node * _Nonnull * _Nonnull elem)
+    struct linked_list_node *_Nullable *_Nonnull head,
+    struct linked_list_node *_Nonnull *_Nonnull elem)
 {
     assert(head);
     assert(elem);
@@ -194,7 +203,8 @@ void linked_list_remove_node(struct linked_list_node *_Nonnull *_Nonnull node)
 }
 
 void linked_list_push_front_ref(
-    struct linked_list_node * _Nullable * _Nonnull head, struct linked_list_node * _Nonnull * _Nonnull elem)
+    struct linked_list_node *_Nullable *_Nonnull head,
+    struct linked_list_node *_Nonnull *_Nonnull elem)
 {
     assert(head);
     assert(elem);
@@ -205,7 +215,8 @@ void linked_list_push_front_ref(
     *head = *elem;
 }
 
-struct linked_list_node *linked_list_get_tail(struct linked_list_node * _Nullable head)
+struct linked_list_node *
+linked_list_get_tail(struct linked_list_node *_Nullable head)
 {
     if(!head) {
         return NULL;
@@ -224,8 +235,8 @@ struct linked_list_node *linked_list_get_tail(struct linked_list_node * _Nullabl
     return current_node;
 }
 
-struct linked_list_node *
-linked_list_clone(struct linked_list_node * _Nullable self, void *(*private_clone)(void *))
+struct linked_list_node *linked_list_clone(
+    struct linked_list_node *_Nullable self, void *(*private_clone)(void *))
 {
     struct linked_list_node *cloned_current_node = NULL;
     void *cloned_private_data                    = NULL;
