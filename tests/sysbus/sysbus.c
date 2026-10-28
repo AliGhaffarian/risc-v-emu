@@ -1,6 +1,7 @@
 #include "sysbus.h"
 #include "helper.h"
 #include "io_dev.h"
+#include "io_dev_memory.h"
 #include "logger.h"
 #include "unity.h"
 
@@ -12,20 +13,16 @@
 
 static struct io_dev *new_test_io_dev(uint64_t base_addr, uint64_t length)
 {
-    _cleanup_freep_io_dev_ struct io_dev *dev = calloc(1, sizeof(*dev));
-    if(dev == NULL) {
-        return NULL;
-    }
+    _cleanup_free_io_dev_meta_data_ struct io_dev_metadata *mdata = NULL;
+    _cleanup_freep_io_dev_memory_ struct io_dev_memory *mem       = NULL;
 
-    int err = new_metadata_with_mem(&dev->meta_data, NULL, length);
-    if(err != 0) {
-        return NULL;
-    }
+    new_metadata_with_mem(&mdata, NULL, length);
+    mem = new_io_dev_memory(&mdata);
 
-    dev->meta_data->mapped_base_addr      = base_addr;
-    dev->meta_data->exposed_memory_length = length;
+    mem->metadata->mapped_base_addr      = base_addr;
+    mem->metadata->exposed_memory_length = length;
 
-    return MOVE(&dev);
+    return (struct io_dev *)MOVE(&mem);
 }
 
 void setUp(void) {}

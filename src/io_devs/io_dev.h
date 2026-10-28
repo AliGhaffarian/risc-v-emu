@@ -14,6 +14,14 @@ struct io_dev_metadata {
     uint64_t mapped_base_addr;
     void (*_Nullable free)(
         struct io_dev *_Nonnull self); /** free dev_specific_data only **/
+    void (*_Nullable write)(
+        struct io_dev *_Nonnull self,
+        uint64_t address,
+        uint8_t value); /** write to mapped memory **/
+    void (*_Nullable read)(
+        struct io_dev *_Nonnull self,
+        uint64_t address,
+        uint8_t *_Nonnull value); /** read from mapped memory **/
     void (*_Nullable debug_dump)(
         const struct io_dev *_Nonnull self); /** dump dev_specific_data **/
 };

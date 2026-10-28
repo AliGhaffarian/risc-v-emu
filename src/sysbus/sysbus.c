@@ -63,14 +63,18 @@ void sysbus_do_io_with_dev(
         if(current_log_level >= LOG_DEBUG) {
             __builtin_dump_struct(dev, printf);
         }
-        dev->meta_data->exposed_memory[exposed_memory_offset] = self->writedata;
+        if(dev->meta_data->write) {
+            dev->meta_data->write(dev, exposed_memory_offset, self->writedata);
+        }
     }
     logger(
         LOG_DEBUG,
         stdout,
         "reading the following value: %hhu\n",
         self->readdata);
-    self->readdata = dev->meta_data->exposed_memory[exposed_memory_offset];
+    if(dev->meta_data->read) {
+        dev->meta_data->read(dev, exposed_memory_offset, &self->readdata);
+    }
 }
 
 void sysbus_step(struct sysbus *_Nonnull self)
