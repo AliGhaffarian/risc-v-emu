@@ -68,7 +68,7 @@ void sysbus_do_io_with_dev(
     logger(
         LOG_DEBUG,
         stdout,
-        "reading the following value: %lu\n",
+        "reading the following value: %hhu\n",
         self->readdata);
     self->readdata = dev->meta_data->exposed_memory[exposed_memory_offset];
 }

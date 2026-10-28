@@ -1618,11 +1618,11 @@ int read_mem(
 
     cpu->ref_sysbus->address  = address + current_offset;
     cpu->ref_sysbus->memwrite = false;
-    *ret |= cpu->ref_sysbus->readdata << ((current_offset - 1) * 8);
+    *ret |= (uint64_t)cpu->ref_sysbus->readdata << ((current_offset - 1) * 8);
     logger(
         LOG_DEBUG,
         stdout,
-        "current_offset:%lu, current ret:%lx, sysbus->readdata:%lx\n",
+        "current_offset:%lu, current ret:%lx, sysbus->readdata:%hhx\n",
         current_offset,
         *ret,
         cpu->ref_sysbus->readdata);

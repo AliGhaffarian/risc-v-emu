@@ -9,8 +9,8 @@ struct sysbus {
     struct linked_list_node *_Nullable io_devs;
     bool memwrite;
     uint64_t address;
-    uint64_t writedata;
-    uint64_t readdata;
+    uint8_t writedata;
+    uint8_t readdata;
 };
 
 void freep_sysbus(void *_Nonnull sysbus);
